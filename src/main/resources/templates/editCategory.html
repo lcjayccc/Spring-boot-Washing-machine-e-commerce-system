@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>编辑子分类</title>
+  <link rel="stylesheet" th:href="@{/css/EditCategoryStyle.css}">
+</head>
+<body>
+<div class="container">
+  <h2>编辑子分类</h2>
+  <div class="parent-info">
+    <h3>父分类：<span th:text="${parent.name}"></span></h3>
+  </div>
+  <div class="children-list">
+    <h4>选择要编辑的子分类：</h4>
+    <div class="child-items">
+      <div class="child-item"
+           th:each="child : ${children}"
+           th:attr="data-id=${child.id},data-name=${child.name},data-description=${child.description}"
+           th:text="${child.name}">
+      </div>
+    </div>
+  </div>
+  <form id="editForm" th:action="@{/category/editChild}" method="post" class="category-form" style="display: none;">
+    <input type="hidden" id="childId" name="id" value="">
+    <input type="hidden" name="parentId" th:value="${parent.id}">
+    <div class="form-group">
+      <label for="name">子分类名称:</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+      <label for="description">子分类描述:</label>
+      <textarea id="description" name="description" required></textarea>
+    </div>
+    <div class="form-buttons">
+      <button type="submit" class="submit-btn">保存修改</button>
+      <a th:href="@{/category/list}" class="cancel-btn">取消</a>
+    </div>
+  </form>
+  <p class="error-message" th:if="${error}" th:text="${error}"></p>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const childItems = document.querySelectorAll('.child-item');
+    childItems.forEach(item => {
+      item.addEventListener('click', function(event) {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+        const description = this.dataset.description;
+        document.getElementById('childId').value = id;
+        document.getElementById('name').value = name;
+        document.getElementById('description').value = description;
+        document.getElementById('editForm').style.display = 'block';
+        childItems.forEach(item => item.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+  });
+</script>
+</body>
+</html>

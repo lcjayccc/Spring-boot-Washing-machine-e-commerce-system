@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新建分类</title>
+    <link rel="stylesheet" th:href="@{/css/CreateCategoryStyle.css}">
+</head>
+<body>
+<div class="form-container">
+    <h2>新增子分类</h2>
+    <p class="message" th:if="${message}" th:text="${message}"></p>
+    <form th:action="@{/category/addChild}" method="post" accept-charset="UTF-8">
+        <div class="form-group">
+            <label for="parentId">选择父分类：</label>
+            <select id="parentId" name="parentId" required>
+                <option value="">请选择父分类</option>
+                <option th:each="parent : ${parentCategories}" th:value="${parent.id}" th:text="${parent.name}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="name">子分类名称：</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="description">子分类描述：</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">提交</button>
+        <a th:href="@{/category/list}" class="btn-cancel">取消</a>
+    </form>
+</div>
+</body>
+</html>

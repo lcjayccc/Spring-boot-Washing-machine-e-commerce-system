@@ -1,0 +1,177 @@
+/* 表单容器样式 */
+.form-container {
+    width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 表单组样式 */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+/* 提交按钮样式 */
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+/* 取消按钮样式 */
+.btn-cancel {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.btn-cancel:hover {
+    text-decoration: underline;
+}
+
+/* 提示信息样式 */
+.message {
+    color: green;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.category-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.submit-btn,
+.cancel-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.submit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.submit-btn:hover {
+    background-color: #45a049;
+}
+
+.cancel-btn:hover {
+    background-color: #d32f2f;
+}
+
+.error-message {
+    color: #f44336;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.parent-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.children-list {
+    margin-bottom: 20px;
+}
+
+.child-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.child-item {
+    padding: 8px 15px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.child-item:hover {
+    background-color: #e6f7ff;
+}
+
+.child-item.selected {
+    background-color: #1890ff;
+    color: white;
+}

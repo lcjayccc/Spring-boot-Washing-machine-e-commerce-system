@@ -1,0 +1,172 @@
+body {
+    font-family: "Microsoft YaHei", Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.add-btn {
+    padding: 8px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.add-btn:hover {
+    background-color: #45a049;
+}
+
+.page-title {
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+}
+
+.message {
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+    border-radius: 4px;
+}
+
+.filter-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.filter-group:last-child {
+    border-bottom: none;
+}
+
+.filter-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 10px;
+    padding: 5px 0;
+}
+
+.edit-link {
+    font-size: 14px;
+}
+
+.edit-link a {
+    color: #666;
+    text-decoration: none;
+    margin-left: 10px;
+    font-size: 13px;
+}
+
+.edit-link a:hover {
+    color: #1890ff;
+}
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-item a {
+    padding: 6px 15px;
+    background-color: #f5f5f5;
+    border-radius: 15px;
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.filter-item a:hover {
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+
+.delete-form {
+    display: inline;
+    margin-left: 5px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 5px;
+    visibility: hidden;
+}
+
+.filter-item:hover .delete-btn {
+    visibility: visible;
+}
+
+.delete-btn:hover {
+    color: #ff4d4f;
+}
+
+.logout-btn {
+    padding: 8px 20px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: #ff7875;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-options {
+        flex-direction: column;
+    }
+
+    .filter-item {
+        width: 100%;
+    }
+}
+

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>商品列表</title>
+    <link rel="stylesheet" th:href="@{/css/ProductListStyle.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="title" th:text="${category != null} ? ${category.name} + ' - 商品列表' : '商品列表'"></h1>
+        <a th:href="@{/product/add}" class="btn-add">新增商品</a>
+    </div>
+    <div class="product-grid">
+        <div class="product-card" th:each="product : ${products}">
+            <div class="product-image">
+                <img th:src="${product.imageUrl != null} ? @{${product.imageUrl}} : @{/images/default.jpg}" th:alt="${product.name}">
+            </div>
+            <div class="product-info">
+                <div class="product-id" th:text="'ID: ' + ${product.id}"></div>
+                <h3 class="product-title" th:text="${product.name}"></h3>
+                <div class="product-model" th:text="'型号：' + ${product.model}"></div>
+                <div class="product-price" th:text="'￥' + ${#numbers.formatDecimal(product.price, 1, 2)}"></div>
+                <div class="product-meta">
+                    <div>
+                        电机类型：
+                        <span th:text="${#lists.size(product.categories.?[parent.id == 3]) > 0} ? ${product.categories.?[parent.id == 3][0].name} : '-'"></span>
+                    </div>
+                    <div>
+                        洗涤容量：
+                        <span th:text="${#lists.size(product.categories.?[parent.id == 4]) > 0} ? ${product.categories.?[parent.id == 4][0].name} : '-'"></span>
+                    </div>
+                </div>
+                <div class="product-description" th:text="'描述：' + (${product.description} != null ? ${product.description} : '暂无描述')"></div>
+                <div class="product-actions">
+                    <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="upload-form">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <input type="hidden" name="categoryId" th:value="${category != null ? category.id : ''}">
+                        <input type="file" name="file" accept="image/*" class="file-input">
+                        <button type="submit" class="btn-upload">上传图片</button>
+                    </form>
+                    <a th:href="@{/product/edit/{id}(id=${product.id}, childId=${category != null ? category.id : null})}" class="btn-edit">编辑</a>
+                    <a th:href="@{/product/delete/{id}(id=${product.id}, childId=${category != null ? category.id : null})}"
+                       class="btn-delete" style="margin-left:10px;"
+                       onclick="return confirm('确定要删除该商品吗？');">删除</a>
+                </div>
+            </div>
+        </div>
+        <div class="no-data" th:if="${products == null or #lists.isEmpty(products)}">暂无商品数据</div>
+    </div>
+    <div class="footer">
+        <a th:href="@{/category/list}" class="btn-back">返回分类列表</a>
+    </div>
+</div>
+</body>
+</html>

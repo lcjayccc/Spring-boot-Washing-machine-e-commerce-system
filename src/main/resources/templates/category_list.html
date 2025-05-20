@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>洗衣机分类展示</title>
+    <link rel="stylesheet" th:href="@{/css/CategorylistStyle.css}">
+</head>
+<body>
+<div class="page-header">
+    <h1 class="page-title">洗衣机分类与商品展示</h1>
+    <div class="header-buttons">
+        <a th:href="@{/category/addChild}" class="add-btn">新增子分类</a>
+        <a th:href="@{/product/add}" class="add-btn">新增商品</a>
+        <a th:href="@{/logout}" class="logout-btn">注销</a>
+    </div>
+</div>
+<div th:if="${session.message != null}" class="message" th:text="${session.message}"></div>
+<div class="filter-section">
+    <div class="filter-group" th:each="parent : ${categories}">
+        <div class="filter-title">
+            <span th:text="${parent.name}"></span>
+            <span class="edit-link">
+                    <a th:href="@{'/category/editChild/' + ${parent.id}}">编辑</a>
+                </span>
+        </div>
+        <div class="filter-options">
+            <div class="filter-item" th:each="child : ${parent.children}">
+                <a th:href="@{'/product/list?childId=' + ${child.id}}" th:text="${child.name}"></a>
+                <form th:action="@{/category/deleteChild/{id}(id=${child.id})}" method="get" class="delete-form"
+                      onsubmit="return confirm('确定要删除这个分类吗？此操作无法撤销！');">
+                    <button type="submit" class="delete-btn">×</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

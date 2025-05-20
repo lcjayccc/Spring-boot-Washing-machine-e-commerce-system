@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>洗衣机管理员登录</title>
+    <link rel="stylesheet" th:href="@{/css/LoginStyle.css}">
+</head>
+<body>
+<div class="login-container">
+    <h2>洗衣机管理员登录</h2>
+    <div th:if="${message != null or errorMessage != null}"
+         th:classappend="${errorMessage != null} ? 'error-message' : 'success-message'">
+        <span th:text="${message != null ? message : errorMessage}"></span>
+    </div>
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <label for="username">用户名：</label>
+            <input type="text" id="username" name="username" required th:value="${username}">
+        </div>
+        <div class="form-group">
+            <label for="password">密码：</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn-login">登录</button>
+    </form>
+</div>
+</body>
+</html>
