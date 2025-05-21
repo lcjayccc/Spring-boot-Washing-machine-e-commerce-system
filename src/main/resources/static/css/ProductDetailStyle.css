@@ -1,0 +1,103 @@
+/* 商品详情页面样式 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.product-detail {
+    display: flex;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+.product-image {
+    flex: 0 0 40%;
+    padding-right: 20px;
+}
+.product-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+.product-info {
+    flex: 0 0 60%;
+}
+.product-title {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+}
+.product-price {
+    font-size: 22px;
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+.product-meta {
+    margin-bottom: 20px;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+.product-meta div {
+    margin-bottom: 10px;
+}
+.product-description {
+    margin-top: 20px;
+    line-height: 1.6;
+}
+.stock-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+.in-stock {
+    background-color: #2ecc71;
+    color: white;
+}
+.out-of-stock {
+    background-color: #e74c3c;
+    color: white;
+}
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+.btn:hover {
+    background-color: #2980b9;
+}
+.breadcrumb {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+.breadcrumb span {
+    margin: 0 5px;
+} 

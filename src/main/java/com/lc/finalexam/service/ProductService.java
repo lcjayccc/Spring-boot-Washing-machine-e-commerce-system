@@ -9,4 +9,5 @@ public interface ProductService {
     Product saveProduct(Product product);
     void deleteProduct(Integer id);
     List<Product> getProductsByCategoryChildId(Integer categoryChildId);
+    List<Product> searchProducts(String keyword);
 }

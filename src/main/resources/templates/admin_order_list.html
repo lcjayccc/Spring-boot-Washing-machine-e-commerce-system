@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>订单管理</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logout-btn {
+            margin-left: 20px;
+            padding: 5px 15px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .nav-link {
+            padding: 10px 20px;
+            margin-right: 5px;
+            text-decoration: none;
+            color: #666;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .nav-link.active {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .statistics {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .order-list {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .order-table th, .order-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .order-table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .order-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #ffeb3b;
+            color: #333;
+        }
+        
+        .status-paid {
+            background-color: #2196f3;
+            color: white;
+        }
+        
+        .status-shipped {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .action-btn {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            text-decoration: none;
+            color: white;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .view-btn {
+            background-color: #2196f3;
+        }
+        
+        .ship-btn {
+            background-color: #ff9800;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+        }
+        
+        .no-data {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .manage-nav {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .manage-link {
+            padding: 10px 20px;
+            margin-right: 10px;
+            text-decoration: none;
+            color: white;
+            background-color: #555;
+            border-radius: 4px;
+        }
+        
+        .manage-link.active {
+            background-color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title">订单管理</div>
+        <div class="admin-info">
+            <span th:text="'管理员: ' + ${admin.username}"></span>
+            <a href="/logout" class="logout-btn">退出登录</a>
+        </div>
+    </div>
+    
+    <div class="manage-nav">
+        <a href="/category/list" class="manage-link">分类管理</a>
+        <a href="/product/list" class="manage-link">商品管理</a>
+        <a href="/admin/order/list" class="manage-link active">订单管理</a>
+    </div>
+    
+    <div class="statistics">
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.total}">0</div>
+            <div class="stat-label">总订单数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.pending}">0</div>
+            <div class="stat-label">待支付</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.paid}">0</div>
+            <div class="stat-label">已支付</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.shipped}">0</div>
+            <div class="stat-label">已发货</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.completed}">0</div>
+            <div class="stat-label">已完成</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${statistics.cancelled}">0</div>
+            <div class="stat-label">已取消</div>
+        </div>
+    </div>
+    
+    <div class="nav-tabs">
+        <a th:href="@{/admin/order/list}" class="nav-link" th:classappend="${currentStatus == null ? 'active' : ''}">全部</a>
+        <a th:href="@{/admin/order/list(status='PENDING')}" class="nav-link" th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}">待支付</a>
+        <a th:href="@{/admin/order/list(status='PAID')}" class="nav-link" th:classappend="${currentStatus == 'PAID' ? 'active' : ''}">已支付</a>
+        <a th:href="@{/admin/order/list(status='SHIPPED')}" class="nav-link" th:classappend="${currentStatus == 'SHIPPED' ? 'active' : ''}">已发货</a>
+        <a th:href="@{/admin/order/list(status='COMPLETED')}" class="nav-link" th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}">已完成</a>
+        <a th:href="@{/admin/order/list(status='CANCELLED')}" class="nav-link" th:classappend="${currentStatus == 'CANCELLED' ? 'active' : ''}">已取消</a>
+    </div>
+    
+    <div class="order-list">
+        <table class="order-table" th:if="${orders != null && !orders.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>订单号</th>
+                    <th>用户</th>
+                    <th>收货人</th>
+                    <th>金额</th>
+                    <th>下单时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.orderNumber}"></td>
+                    <td th:text="${order.user.username}"></td>
+                    <td th:text="${order.recipientName}"></td>
+                    <td th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></td>
+                    <td th:text="${#temporals.format(order.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <span class="status-badge" 
+                              th:classappend="${'status-' + #strings.toLowerCase(order.status)}"
+                              th:text="${order.status == 'PENDING' ? '待支付' : 
+                                      order.status == 'PAID' ? '已支付' : 
+                                      order.status == 'SHIPPED' ? '已发货' : 
+                                      order.status == 'COMPLETED' ? '已完成' : '已取消'}">
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/order/detail/{id}(id=${order.id})}" class="action-btn view-btn">查看</a>
+                        <a th:if="${order.status == 'PAID'}" 
+                           th:href="@{/admin/order/detail/{id}(id=${order.id})}" 
+                           class="action-btn ship-btn">发货</a>
+                        <a th:if="${order.status == 'PENDING' || order.status == 'PAID'}" 
+                           th:href="@{/admin/order/detail/{id}(id=${order.id})}" 
+                           class="action-btn cancel-btn">取消</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="no-data" th:if="${orders == null || orders.isEmpty()}">
+            暂无订单数据
+        </div>
+    </div>
+</div>
+</body>
+</html> 

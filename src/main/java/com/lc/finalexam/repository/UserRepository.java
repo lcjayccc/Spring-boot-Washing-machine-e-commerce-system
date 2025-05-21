@@ -9,4 +9,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // 按邮箱查找
     User findByEmail(String email);
+
+    // 按手机号查找
+    User findByPhone(String phone);
 }

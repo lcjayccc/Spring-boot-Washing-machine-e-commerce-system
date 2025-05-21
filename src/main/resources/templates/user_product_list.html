@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>商品列表</title>
+    <link rel="stylesheet" th:href="@{/css/ProductListStyle.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="title">商品列表</h1>
+        <div style="display:flex;align-items:center;">
+            <div th:if="${user.avatarUrl != null}" style="margin-right:10px;">
+                <img th:src="@{${user.avatarUrl}}" alt="头像" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;">
+            </div>
+            <span th:text="'欢迎，' + ${user.username}"></span>
+            <a th:href="@{/cart}" class="btn-edit" style="margin-left:20px;">购物车</a>
+            <a th:href="@{/user/profile}" class="btn-edit" style="margin-left:20px;">编辑个人信息</a>
+            <a th:href="@{/order/list}" class="btn-edit" style="margin-left:20px;">我的订单</a>
+            <a th:href="@{/user/logout}" class="btn-delete" style="margin-left:20px;">退出登录</a>
+        </div>
+    </div>
+    
+    <div class="search-section">
+        <form th:action="@{/user/search}" method="get" class="search-form">
+            <input type="text" name="keyword" th:value="${keyword}" class="search-input" placeholder="输入商品名称或型号搜索...">
+            <button type="submit" class="search-button">搜索</button>
+        </form>
+    </div>
+    
+    <div class="filter-section">
+        <div class="filter-group" th:each="parent : ${categories}">
+            <div class="filter-title">
+                <span th:text="${parent.name}"></span>
+            </div>
+            <div class="filter-options">
+                <div class="filter-item">
+                    <a th:href="@{/user/category/{id}(id=${parent.id})}" 
+                       th:class="${selectedParentId != null && selectedParentId == parent.id && selectedChildId == null ? 'active' : ''}">
+                        全部
+                    </a>
+                </div>
+                <div class="filter-item" th:each="child : ${parent.children}">
+                    <a th:href="@{/user/category/{id}/{childId}(id=${parent.id},childId=${child.id})}" 
+                       th:class="${selectedChildId != null && selectedChildId == child.id ? 'active' : ''}"
+                       th:text="${child.name}"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="product-grid">
+        <div class="product-card" th:each="product : ${products}">
+            <div class="product-image">
+                <img th:src="${product.imageUrl != null} ? @{${product.imageUrl}} : @{/images/default.jpg}" th:alt="${product.name}">
+            </div>
+            <div class="product-info">
+                <div class="product-id" th:text="'ID: ' + ${product.id}"></div>
+                <h3 class="product-title" th:text="${product.name}"></h3>
+                <span th:if="${product.stock > 0}" class="stock-badge in-stock">有货</span>
+                <span th:unless="${product.stock > 0}" class="stock-badge out-of-stock">缺货</span>
+                <div class="product-model" th:text="'型号：' + ${product.model}"></div>
+                <div class="product-price" th:text="'￥' + ${#numbers.formatDecimal(product.price, 1, 2)}"></div>
+                <div class="product-meta">
+                    <div>
+                        电机类型：
+                        <span th:text="${#lists.size(product.categories.?[parent.id == 3]) > 0} ? ${product.categories.?[parent.id == 3][0].name} : '-'"></span>
+                    </div>
+                    <div>
+                        洗涤容量：
+                        <span th:text="${#lists.size(product.categories.?[parent.id == 4]) > 0} ? ${product.categories.?[parent.id == 4][0].name} : '-'"></span>
+                    </div>
+                </div>
+                <div class="product-description" th:text="'描述：' + (${product.description} != null ? ${product.description} : '暂无描述')"></div>
+                <div class="product-actions">
+                    <a th:href="@{/user/product/{id}(id=${product.id})}" class="btn-view">查看详情</a>
+                    <button th:if="${product.stock > 0}" th:data-id="${product.id}" class="add-to-cart-quick">加入购物车</button>
+                </div>
+            </div>
+        </div>
+        <div class="no-data" th:if="${products == null or #lists.isEmpty(products)}">暂无商品数据</div>
+    </div>
+</div>
+
+<div id="notification" class="notification" style="position: fixed; top: 20px; right: 20px; background-color: #2ecc71; color: white; padding: 15px 20px; border-radius: 5px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: none; z-index: 1000;"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取所有快捷添加到购物车的按钮
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-quick');
+        const notification = document.getElementById('notification');
+        
+        // 为每个按钮添加点击事件
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-id');
+                
+                // 发送请求添加到购物车，默认数量为1
+                fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `productId=${productId}&quantity=1`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message);
+                    } else {
+                        showNotification(data.message || '添加失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('发生错误，请稍后重试');
+                });
+            });
+        });
+        
+        // 显示通知
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
+</body>
+</html>

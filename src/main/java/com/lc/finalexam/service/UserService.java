@@ -5,4 +5,7 @@ import com.lc.finalexam.entity.User;
 public interface UserService {
     User login(String username, String password);
     User getUserByUsername(String username);
+    User register(User user);
+    User updateProfile(Integer userId, String email, String phone, String avatarUrl);
+    User getUserById(Integer id);
 }

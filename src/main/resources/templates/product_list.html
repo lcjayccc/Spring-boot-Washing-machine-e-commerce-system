@@ -8,7 +8,10 @@
 <div class="container">
     <div class="header">
         <h1 class="title" th:text="${category != null} ? ${category.name} + ' - 商品列表' : '商品列表'"></h1>
-        <a th:href="@{/product/add}" class="btn-add">新增商品</a>
+        <div class="header-buttons">
+            <a th:href="@{/product/add}" class="btn-add">新增商品</a>
+            <a th:href="@{/admin/order/list}" class="btn-add">订单管理</a>
+        </div>
     </div>
     <div class="product-grid">
         <div class="product-card" th:each="product : ${products}">

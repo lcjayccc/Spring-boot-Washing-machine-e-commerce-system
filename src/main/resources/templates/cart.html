@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>我的购物车</title>
+    <link rel="stylesheet" th:href="@{/css/CartStyle.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="cart-title">我的购物车</h1>
+        <div style="display:flex;align-items:center;">
+            <div th:if="${user.avatarUrl != null}" style="margin-right:10px;">
+                <img th:src="@{${user.avatarUrl}}" alt="头像" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;">
+            </div>
+            <span th:text="'欢迎，' + ${user.username}"></span>
+            <a th:href="@{/user/index}" class="btn btn-primary" style="margin-left:20px;">继续购物</a>
+            <a th:href="@{/user/logout}" class="btn btn-danger" style="margin-left:10px;">退出登录</a>
+        </div>
+    </div>
+    
+    <!-- 空购物车提示 -->
+    <div class="cart-empty" th:if="${cartItems == null || #lists.isEmpty(cartItems)}">
+        <p>您的购物车还是空的，快去购物吧！</p>
+        <a th:href="@{/user/index}" class="btn btn-continue">去购物</a>
+    </div>
+    
+    <!-- 购物车内容 -->
+    <div th:if="${cartItems != null && !#lists.isEmpty(cartItems)}">
+        <form id="checkoutForm" th:action="@{/cart/checkout}" method="post">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"> 全选</th>
+                        <th>商品图片</th>
+                        <th>商品名称</th>
+                        <th>单价</th>
+                        <th>数量</th>
+                        <th>小计</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${cartItems}">
+                        <td>
+                            <input type="checkbox" name="itemIds" th:value="${item.id}" class="item-checkbox">
+                        </td>
+                        <td>
+                            <img th:src="${item.product.imageUrl != null} ? @{${item.product.imageUrl}} : @{/images/default.jpg}" 
+                                 alt="商品图片" class="cart-image">
+                        </td>
+                        <td>
+                            <a th:href="@{/user/product/{id}(id=${item.product.id})}" class="cart-product-name" th:text="${item.product.name}"></a>
+                            <div th:text="'型号：' + ${item.product.model}"></div>
+                        </td>
+                        <td class="cart-product-price" th:text="'¥' + ${#numbers.formatDecimal(item.product.price, 1, 2)}"></td>
+                        <td>
+                            <div class="cart-quantity">
+                                <button type="button" class="quantity-btn decrease-btn" th:data-id="${item.product.id}">-</button>
+                                <input type="number" class="quantity-input" th:value="${item.quantity}" min="1" 
+                                       th:max="${item.product.stock}" th:data-id="${item.product.id}" readonly>
+                                <button type="button" class="quantity-btn increase-btn" th:data-id="${item.product.id}">+</button>
+                            </div>
+                            <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                                库存: <span th:text="${item.product.stock}"></span>
+                            </div>
+                        </td>
+                        <td class="cart-subtotal" th:text="'¥' + ${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2)}"
+                            th:data-id="${item.product.id}"></td>
+                        <td>
+                            <button type="button" class="remove-btn" th:data-id="${item.product.id}">删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="cart-footer">
+                <div class="cart-actions">
+                    <button type="button" id="removeSelected" class="btn btn-danger">删除选中商品</button>
+                    <button type="button" id="clearCart" class="btn btn-danger">清空购物车</button>
+                </div>
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>已选商品 <span id="selectedCount">0</span> 件，总计：</span>
+                        <span class="total-price" id="selectedTotal">¥0.00</span>
+                    </div>
+                    <button type="submit" id="checkout" class="btn-checkout" disabled>结算</button>
+                    <div class="selected-count">已选择 <span id="selectedItemCount">0</span> 件商品</div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="notification" class="notification" style="position: fixed; top: 20px; right: 20px; background-color: #2ecc71; color: white; padding: 15px 20px; border-radius: 5px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: none; z-index: 1000;"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取元素
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+        const removeSelectedBtn = document.getElementById('removeSelected');
+        const clearCartBtn = document.getElementById('clearCart');
+        const checkoutBtn = document.getElementById('checkout');
+        const selectedCountElem = document.getElementById('selectedCount');
+        const selectedItemCountElem = document.getElementById('selectedItemCount');
+        const selectedTotalElem = document.getElementById('selectedTotal');
+        const decreaseBtns = document.querySelectorAll('.decrease-btn');
+        const increaseBtns = document.querySelectorAll('.increase-btn');
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        const removeBtns = document.querySelectorAll('.remove-btn');
+        
+        // 更新选中商品数量和总价
+        function updateSelectedInfo() {
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            const count = selectedCheckboxes.length;
+            selectedCountElem.textContent = count;
+            selectedItemCountElem.textContent = count;
+            
+            // 如果没有选中商品，禁用结算按钮
+            if (count === 0) {
+                checkoutBtn.disabled = true;
+                selectedTotalElem.textContent = '¥0.00';
+                return;
+            } else {
+                checkoutBtn.disabled = false;
+            }
+            
+            // 计算选中商品的总价
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+            
+            fetch('/cart/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'itemIds=' + selectedIds.join(',')
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectedTotalElem.textContent = '¥' + data.selectedTotal.toFixed(2);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // 全选/取消全选
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            updateSelectedInfo();
+        });
+        
+        // 单个商品选择变化
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // 检查是否所有商品都被选中
+                const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                
+                updateSelectedInfo();
+            });
+        });
+        
+        // 显示通知函数
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
+            notification.style.display = 'block';
+            
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 删除选中商品
+        removeSelectedBtn.addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showNotification('请选择要删除的商品', true);
+                return;
+            }
+            
+            if (confirm('确定要删除选中的商品吗？')) {
+                // 获取选中商品对应的商品ID
+                const productIds = [];
+                const selectedRows = [];
+                
+                selectedCheckboxes.forEach(checkbox => {
+                    const tr = checkbox.closest('tr');
+                    selectedRows.push(tr);
+                    const removeBtn = tr.querySelector('.remove-btn');
+                    productIds.push(removeBtn.getAttribute('data-id'));
+                });
+                
+                // 发送请求删除选中商品
+                fetch('/cart/removeMultiple', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'productIds=' + productIds.join(',')
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 从DOM中移除选中的商品行
+                        selectedRows.forEach(row => row.remove());
+                        
+                        // 更新总价
+                        if (data.total !== undefined) {
+                            const totalPriceElems = document.querySelectorAll('.total-price');
+                            totalPriceElems.forEach(elem => {
+                                elem.textContent = '¥' + data.total.toFixed(2);
+                            });
+                        }
+                        
+                        // 如果删除后购物车为空，刷新页面以显示空购物车提示
+                        if (document.querySelectorAll('.cart-table tbody tr').length === 0) {
+                            window.location.reload();
+                        } else {
+                            // 更新选中商品信息
+                            updateSelectedInfo();
+                            
+                            // 取消全选框选中状态
+                            selectAllCheckbox.checked = false;
+                        }
+                        
+                        // 显示删除成功通知
+                        showNotification(data.message || '所选商品已从购物车移除');
+                    } else {
+                        showNotification(data.message || '删除失败', true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('操作失败，请稍后重试', true);
+                });
+            }
+        });
+        
+        // 清空购物车
+        clearCartBtn.addEventListener('click', function() {
+            if (confirm('确定要清空购物车吗？')) {
+                fetch('/cart/clear', {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        showNotification(data.message || '操作失败', true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('操作失败，请稍后重试', true);
+                });
+            }
+        });
+        
+        // 减少商品数量
+        decreaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-id');
+                const inputElem = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+                let quantity = parseInt(inputElem.value);
+                
+                if (quantity > 1) {
+                    quantity--;
+                    updateQuantity(productId, quantity);
+                }
+            });
+        });
+        
+        // 增加商品数量
+        increaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-id');
+                const inputElem = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+                let quantity = parseInt(inputElem.value);
+                const maxStock = parseInt(inputElem.getAttribute('max'));
+                
+                if (quantity < maxStock) {
+                    quantity++;
+                    updateQuantity(productId, quantity);
+                } else {
+                    showNotification('已达到最大库存量', true);
+                }
+            });
+        });
+        
+        // 更新商品数量
+        function updateQuantity(productId, quantity) {
+            fetch(`/cart/update?productId=${productId}&quantity=${quantity}`, {
+                method: 'PUT'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新显示
+                    const inputElem = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+                    const subtotalElem = document.querySelector(`.cart-subtotal[data-id="${productId}"]`);
+                    
+                    inputElem.value = quantity;
+                    subtotalElem.textContent = '¥' + data.subtotal.toFixed(2);
+                    
+                    // 更新总价
+                    updateSelectedInfo();
+                    
+                    // 显示成功通知
+                    showNotification('商品数量已更新');
+                } else {
+                    showNotification(data.message || '更新失败', true);
+                    // 恢复原数量值
+                    const inputElem = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+                    if (inputElem && data.currentQuantity) {
+                        inputElem.value = data.currentQuantity;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('操作失败，请稍后重试', true);
+            });
+        }
+        
+        // 删除单个商品
+        removeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-id');
+                
+                if (confirm('确定要删除这件商品吗？')) {
+                    fetch(`/cart/remove?productId=${productId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 找到并删除对应的商品行
+                            const tr = this.closest('tr');
+                            tr.remove();
+                            
+                            // 更新总价
+                            if (data.total !== undefined) {
+                                const totalPriceElems = document.querySelectorAll('.total-price');
+                                totalPriceElems.forEach(elem => {
+                                    elem.textContent = '¥' + data.total.toFixed(2);
+                                });
+                            }
+                            
+                            // 如果删除后购物车为空，刷新页面以显示空购物车提示
+                            if (document.querySelectorAll('.cart-table tbody tr').length === 0) {
+                                window.location.reload();
+                            } else {
+                                // 更新选中商品信息
+                                updateSelectedInfo();
+                            }
+                            
+                            // 显示删除成功提示
+                            showNotification(data.message || '商品已从购物车移除');
+                        } else {
+                            showNotification(data.message || '删除失败', true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('操作失败，请稍后重试', true);
+                    });
+                }
+            });
+        });
+        
+        // 初始更新选中信息
+        updateSelectedInfo();
+    });
+</script>
+</body>
+</html> 

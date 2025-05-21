@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>订单详情</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logout-btn {
+            margin-left: 20px;
+            padding: 5px 15px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        
+        .manage-nav {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .manage-link {
+            padding: 10px 20px;
+            margin-right: 10px;
+            text-decoration: none;
+            color: white;
+            background-color: #555;
+            border-radius: 4px;
+        }
+        
+        .manage-link.active {
+            background-color: #333;
+            font-weight: bold;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .breadcrumb a {
+            color: #2196f3;
+            text-decoration: none;
+        }
+        
+        .breadcrumb span {
+            margin: 0 5px;
+        }
+        
+        .order-status {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .status-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-pending { color: #ffeb3b; }
+        .status-paid { color: #2196f3; }
+        .status-shipped { color: #ff9800; }
+        .status-completed { color: #4caf50; }
+        .status-cancelled { color: #f44336; }
+        
+        .status-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        
+        .ship-btn {
+            background-color: #ff9800;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+        }
+        
+        .back-btn {
+            background-color: #555;
+        }
+        
+        .order-info-card {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            row-gap: 10px;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: bold;
+        }
+        
+        .order-items {
+            margin-top: 20px;
+        }
+        
+        .order-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-image {
+            width: 80px;
+            margin-right: 15px;
+        }
+        
+        .item-image img {
+            width: 100%;
+            border-radius: 4px;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .item-model {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .item-price {
+            display: flex;
+            justify-content: space-between;
+            color: #e53935;
+        }
+        
+        .order-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+        
+        .summary-row {
+            margin-bottom: 5px;
+        }
+        
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .summary-value {
+            margin-left: 15px;
+            color: #e53935;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            width: 400px;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .form-actions .action-btn {
+            margin-left: 10px;
+            margin-right: 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 1100;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: #4caf50;
+        }
+        
+        .notification.error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title">订单详情</div>
+        <div class="admin-info">
+            <span th:text="'管理员: ' + ${admin.username}"></span>
+            <a href="/logout" class="logout-btn">退出登录</a>
+        </div>
+    </div>
+    
+    <div class="manage-nav">
+        <a href="/category/list" class="manage-link">分类管理</a>
+        <a href="/product/list" class="manage-link">商品管理</a>
+        <a href="/admin/order/list" class="manage-link active">订单管理</a>
+    </div>
+    
+    <div class="breadcrumb">
+        <a href="/admin/order/list">订单管理</a>
+        <span>></span>
+        <span>订单详情</span>
+        <span>></span>
+        <span th:text="${order.orderNumber}"></span>
+    </div>
+    
+    <div class="order-status">
+        <div class="status-title" 
+             th:classappend="${'status-' + #strings.toLowerCase(order.status)}"
+             th:text="${order.status == 'PENDING' ? '待支付' : 
+                     order.status == 'PAID' ? '已支付' : 
+                     order.status == 'SHIPPED' ? '已发货' : 
+                     order.status == 'COMPLETED' ? '已完成' : '已取消'}">
+        </div>
+        
+        <div class="status-description" th:if="${order.status == 'PENDING'}">
+            用户尚未支付订单
+        </div>
+        <div class="status-description" th:if="${order.status == 'PAID'}">
+            用户已支付，等待发货
+        </div>
+        <div class="status-description" th:if="${order.status == 'SHIPPED'}">
+            订单已发货，物流单号: <span th:text="${order.trackingNumber != null ? order.trackingNumber : '暂无'}"></span>
+        </div>
+        <div class="status-description" th:if="${order.status == 'COMPLETED'}">
+            订单已完成
+        </div>
+        <div class="status-description" th:if="${order.status == 'CANCELLED'}">
+            订单已取消，原因: <span th:text="${order.cancelReason != null ? order.cancelReason : '用户取消'}"></span>
+        </div>
+        
+        <div class="actions" th:if="${order.status == 'PAID'}">
+            <button id="shipBtn" class="action-btn ship-btn">发货处理</button>
+            <button id="cancelBtn" class="action-btn cancel-btn">取消订单</button>
+        </div>
+        
+        <div class="actions" th:if="${order.status == 'PENDING'}">
+            <button id="cancelBtn" class="action-btn cancel-btn">取消订单</button>
+        </div>
+        
+        <a href="/admin/order/list" class="action-btn back-btn">返回列表</a>
+    </div>
+    
+    <div class="order-info-card">
+        <div class="card-title">订单信息</div>
+        <div class="info-grid">
+            <div class="info-label">订单编号:</div>
+            <div class="info-value" th:text="${order.orderNumber}"></div>
+            
+            <div class="info-label">下单时间:</div>
+            <div class="info-value" th:text="${#temporals.format(order.createTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+            
+            <div class="info-label" th:if="${order.payTime != null}">支付时间:</div>
+            <div class="info-value" th:if="${order.payTime != null}" th:text="${#temporals.format(order.payTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+            
+            <div class="info-label" th:if="${order.shipTime != null}">发货时间:</div>
+            <div class="info-value" th:if="${order.shipTime != null}" th:text="${#temporals.format(order.shipTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+            
+            <div class="info-label" th:if="${order.cancelTime != null}">取消时间:</div>
+            <div class="info-value" th:if="${order.cancelTime != null}" th:text="${#temporals.format(order.cancelTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+            
+            <div class="info-label">用户名:</div>
+            <div class="info-value" th:text="${order.user.username}"></div>
+            
+            <div class="info-label">联系方式:</div>
+            <div class="info-value" th:text="${order.user.phone}"></div>
+            
+            <div class="info-label">电子邮箱:</div>
+            <div class="info-value" th:text="${order.user.email}"></div>
+        </div>
+    </div>
+    
+    <div class="order-info-card">
+        <div class="card-title">收货信息</div>
+        <div class="info-grid">
+            <div class="info-label">收货人:</div>
+            <div class="info-value" th:text="${order.recipientName}"></div>
+            
+            <div class="info-label">联系电话:</div>
+            <div class="info-value" th:text="${order.recipientPhone}"></div>
+            
+            <div class="info-label">收货地址:</div>
+            <div class="info-value" th:text="${order.shippingAddress}"></div>
+            
+            <div class="info-label" th:if="${order.trackingNumber != null}">物流单号:</div>
+            <div class="info-value" th:if="${order.trackingNumber != null}" th:text="${order.trackingNumber}"></div>
+            
+            <div class="info-label" th:if="${order.note != null && !order.note.isEmpty()}">订单备注:</div>
+            <div class="info-value" th:if="${order.note != null && !order.note.isEmpty()}" th:text="${order.note}"></div>
+        </div>
+    </div>
+    
+    <div class="order-info-card">
+        <div class="card-title">商品信息</div>
+        <div class="order-items">
+            <div class="order-item" th:each="item : ${order.orderItems}">
+                <div class="item-image">
+                    <img th:src="${item.productImage != null} ? @{${item.productImage}} : @{/images/default.jpg}" alt="商品图片">
+                </div>
+                <div class="item-details">
+                    <div class="item-name" th:text="${item.productName}"></div>
+                    <div class="item-model" th:text="'型号: ' + ${item.productModel}"></div>
+                    <div class="item-price">
+                        <span th:text="'单价: ¥' + ${#numbers.formatDecimal(item.price, 1, 2)}"></span>
+                        <span th:text="'数量: ' + ${item.quantity}"></span>
+                        <span th:text="'小计: ¥' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="order-summary">
+            <div class="summary-row">
+                商品总价: <span class="summary-value" th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span>
+            </div>
+            <div class="summary-row">
+                运费: <span class="summary-value">¥0.00</span>
+            </div>
+            <div class="summary-row total">
+                实付金额: <span class="summary-value" th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 发货模态框 -->
+<div id="shipModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">发货处理</div>
+        <div class="form-group">
+            <label class="form-label">物流单号</label>
+            <input type="text" id="trackingNumber" class="form-input" placeholder="请输入物流单号">
+        </div>
+        <div class="form-actions">
+            <button id="closeShipModal" class="action-btn back-btn">取消</button>
+            <button id="confirmShip" class="action-btn ship-btn">确认发货</button>
+        </div>
+    </div>
+</div>
+
+<!-- 取消订单模态框 -->
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">取消订单</div>
+        <div class="form-group">
+            <label class="form-label">取消原因</label>
+            <textarea id="cancelReason" class="form-textarea" placeholder="请输入取消订单的原因"></textarea>
+        </div>
+        <div class="form-actions">
+            <button id="closeCancelModal" class="action-btn back-btn">取消</button>
+            <button id="confirmCancel" class="action-btn cancel-btn">确认取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 通知弹窗 -->
+<div id="notification" class="notification"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderId = /*[[${order.id}]]*/ 0;
+        
+        // 发货模态框相关
+        const shipBtn = document.getElementById('shipBtn');
+        const shipModal = document.getElementById('shipModal');
+        const closeShipModal = document.getElementById('closeShipModal');
+        const confirmShip = document.getElementById('confirmShip');
+        const trackingNumber = document.getElementById('trackingNumber');
+        
+        // 取消订单模态框相关
+        const cancelBtn = document.getElementById('cancelBtn');
+        const cancelModal = document.getElementById('cancelModal');
+        const closeCancelModal = document.getElementById('closeCancelModal');
+        const confirmCancel = document.getElementById('confirmCancel');
+        const cancelReason = document.getElementById('cancelReason');
+        
+        // 通知相关
+        const notification = document.getElementById('notification');
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = 'notification ' + (isError ? 'error' : 'success');
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 发货按钮事件
+        if (shipBtn) {
+            shipBtn.addEventListener('click', function() {
+                shipModal.style.display = 'flex';
+            });
+        }
+        
+        // 关闭发货模态框
+        if (closeShipModal) {
+            closeShipModal.addEventListener('click', function() {
+                shipModal.style.display = 'none';
+            });
+        }
+        
+        // 确认发货处理
+        if (confirmShip) {
+            confirmShip.addEventListener('click', function() {
+                const tracking = trackingNumber.value.trim();
+                
+                fetch(`/admin/order/ship/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `trackingNumber=${tracking}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    shipModal.style.display = 'none';
+                    
+                    if (data.success) {
+                        showNotification(data.message);
+                        // 刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    shipModal.style.display = 'none';
+                    showNotification('处理失败，请重试', true);
+                });
+            });
+        }
+        
+        // 取消订单按钮事件
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                cancelModal.style.display = 'flex';
+            });
+        }
+        
+        // 关闭取消订单模态框
+        if (closeCancelModal) {
+            closeCancelModal.addEventListener('click', function() {
+                cancelModal.style.display = 'none';
+            });
+        }
+        
+        // 确认取消订单处理
+        if (confirmCancel) {
+            confirmCancel.addEventListener('click', function() {
+                const reason = cancelReason.value.trim();
+                
+                if (!reason) {
+                    showNotification('请输入取消原因', true);
+                    return;
+                }
+                
+                fetch(`/admin/order/cancel/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `reason=${reason}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    cancelModal.style.display = 'none';
+                    
+                    if (data.success) {
+                        showNotification(data.message);
+                        // 刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    cancelModal.style.display = 'none';
+                    showNotification('处理失败，请重试', true);
+                });
+            });
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html> 

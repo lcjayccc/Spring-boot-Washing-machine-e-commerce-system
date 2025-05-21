@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>订单详情</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .order-status-bar {
+            background-color: white;
+            border-radius: 5px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .status-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .status-title h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .status-title p {
+            color: #666;
+            margin: 10px 0 0;
+        }
+        
+        .status-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 0 40px;
+        }
+        
+        .status-step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #ddd;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .step-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-line {
+            position: absolute;
+            height: 4px;
+            background-color: #ddd;
+            top: 25px;
+            left: 40px;
+            right: 40px;
+            z-index: 0;
+        }
+        
+        .status-line-progress {
+            position: absolute;
+            height: 4px;
+            background-color: #4caf50;
+            top: 0;
+            left: 0;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .status-step.active .step-icon {
+            background-color: #4caf50;
+        }
+        
+        .status-step.active .step-label {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .step-cancelled .step-icon {
+            background-color: #f44336;
+        }
+        
+        .order-card {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+        
+        .order-info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .order-info-label {
+            width: 120px;
+            color: #666;
+        }
+        
+        .order-info-value {
+            flex-grow: 1;
+            font-weight: bold;
+        }
+        
+        .order-items {
+            margin-bottom: 20px;
+        }
+        
+        .order-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-image {
+            width: 80px;
+            margin-right: 15px;
+        }
+        
+        .item-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 3px;
+        }
+        
+        .item-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .item-model {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .item-price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .item-price {
+            color: #e53935;
+        }
+        
+        .item-quantity {
+            color: #666;
+        }
+        
+        .item-subtotal {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .shipping-info p {
+            margin: 5px 0;
+        }
+        
+        .total-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .total-row {
+            margin-bottom: 10px;
+        }
+        
+        .total-row:last-child {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        
+        .total-amount {
+            color: #e53935;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .payment-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .payment-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .payment-label {
+            width: 120px;
+            color: #666;
+        }
+        
+        .payment-value {
+            flex-grow: 1;
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: #2196f3;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0c7cd5;
+        }
+        
+        .btn-success {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #3d8b40;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e68900;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .success {
+            background-color: #4caf50;
+        }
+        
+        .error {
+            background-color: #e53935;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>订单详情</h1>
+        <div class="user-info">
+            <div th:if="${user.avatarUrl != null}">
+                <img th:src="@{${user.avatarUrl}}" alt="头像">
+            </div>
+            <span th:text="'欢迎，' + ${user.username}"></span>
+        </div>
+    </div>
+    
+    <div class="order-status-bar">
+        <div class="status-title">
+            <h2 th:text="${order.status == 'PENDING' ? '待支付' : 
+                          order.status == 'PAID' ? '已支付' :
+                          order.status == 'SHIPPED' ? '已发货' :
+                          order.status == 'COMPLETED' ? '已完成' : '已取消'}">
+            </h2>
+            <p th:if="${order.status == 'PENDING'}">请尽快完成支付，以确保商品库存</p>
+            <p th:if="${order.status == 'PAID'}">订单已支付，正在等待发货</p>
+            <p th:if="${order.status == 'SHIPPED'}">商品已发货，请留意物流信息</p>
+            <p th:if="${order.status == 'SHIPPED' && order.trackingNumber != null}">物流单号: <span th:text="${order.trackingNumber}"></span></p>
+            <p th:if="${order.status == 'COMPLETED'}">订单已完成，感谢您的购买</p>
+            <p th:if="${order.status == 'CANCELLED'}">订单已取消</p>
+            <p th:if="${order.status == 'CANCELLED' && order.cancelReason != null}">取消原因: <span th:text="${order.cancelReason}"></span></p>
+        </div>
+        
+        <!-- 标准流程状态条 -->
+        <div th:if="${order.status != 'CANCELLED'}" class="status-steps">
+            <div class="status-line">
+                <div class="status-line-progress" th:style="${order.status == 'PENDING' ? 'width: 25%' : 
+                                                              order.status == 'PAID' ? 'width: 50%' :
+                                                              order.status == 'SHIPPED' ? 'width: 75%' :
+                                                              order.status == 'COMPLETED' ? 'width: 100%' : 'width: 0%'}">
+                </div>
+            </div>
+            
+            <div class="status-step" th:classappend="${order.status != null ? 'active' : ''}">
+                <div class="step-icon">1</div>
+                <div class="step-label">下单</div>
+            </div>
+            
+            <div class="status-step" th:classappend="${order.status == 'PAID' || order.status == 'SHIPPED' || order.status == 'COMPLETED' ? 'active' : ''}">
+                <div class="step-icon">2</div>
+                <div class="step-label">支付</div>
+            </div>
+            
+            <div class="status-step" th:classappend="${order.status == 'SHIPPED' || order.status == 'COMPLETED' ? 'active' : ''}">
+                <div class="step-icon">3</div>
+                <div class="step-label">发货</div>
+            </div>
+            
+            <div class="status-step" th:classappend="${order.status == 'COMPLETED' ? 'active' : ''}">
+                <div class="step-icon">4</div>
+                <div class="step-label">完成</div>
+            </div>
+        </div>
+        
+        <!-- 取消状态 -->
+        <div th:if="${order.status == 'CANCELLED'}" class="status-steps">
+            <div class="status-step active step-cancelled">
+                <div class="step-icon">✕</div>
+                <div class="step-label">订单已取消</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-card">
+        <div class="card-title">订单信息</div>
+        <div class="order-info-row">
+            <div class="order-info-label">订单编号：</div>
+            <div class="order-info-value" th:text="${order.orderNumber}"></div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">下单时间：</div>
+            <div class="order-info-value" th:text="${#temporals.format(order.createTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+        </div>
+        <div class="order-info-row" th:if="${order.payTime != null}">
+            <div class="order-info-label">支付时间：</div>
+            <div class="order-info-value" th:text="${#temporals.format(order.payTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+        </div>
+        <div class="order-info-row" th:if="${order.cancelTime != null}">
+            <div class="order-info-label">取消时间：</div>
+            <div class="order-info-value" th:text="${#temporals.format(order.cancelTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">订单状态：</div>
+            <div class="order-info-value" th:text="${order.status == 'PENDING' ? '待支付' : 
+                                                   order.status == 'PAID' ? '已支付' :
+                                                   order.status == 'SHIPPED' ? '已发货' :
+                                                   order.status == 'COMPLETED' ? '已完成' : '已取消'}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-card">
+        <div class="card-title">商品信息</div>
+        <div class="order-items">
+            <div class="order-item" th:each="item : ${order.orderItems}">
+                <div class="item-image">
+                    <img th:src="${item.productImage != null} ? @{${item.productImage}} : @{/images/default.jpg}" alt="商品图片">
+                </div>
+                <div class="item-details">
+                    <div>
+                        <div class="item-name" th:text="${item.productName}"></div>
+                        <div class="item-model" th:text="'型号：' + ${item.productModel}"></div>
+                    </div>
+                    <div class="item-price-row">
+                        <div class="item-price" th:text="'¥' + ${#numbers.formatDecimal(item.price, 1, 2)}"></div>
+                        <div class="item-quantity" th:text="'x' + ${item.quantity}"></div>
+                        <div class="item-subtotal" th:text="'¥' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="total-info">
+            <div class="total-row">
+                商品总价：<span th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span>
+            </div>
+            <div class="total-row">
+                运费：<span>¥0.00</span>
+            </div>
+            <div class="total-row">
+                实付金额：<span class="total-amount" th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-card">
+        <div class="card-title">收货信息</div>
+        <div class="shipping-info">
+            <p th:text="'收货人：' + ${order.recipientName}"></p>
+            <p th:text="'联系电话：' + ${order.recipientPhone}"></p>
+            <p th:text="'收货地址：' + ${order.shippingAddress}"></p>
+            <p th:if="${order.note}" th:text="'订单备注：' + ${order.note}"></p>
+        </div>
+    </div>
+    
+    <div class="action-buttons">
+        <!-- 根据订单状态显示不同按钮 -->
+        <a th:if="${order.status == 'PENDING'}" th:href="@{/order/pay/{id}(id=${order.id})}" class="btn btn-success">去支付</a>
+        <button th:if="${order.status == 'PENDING'}" th:data-id="${order.id}" class="btn btn-danger cancel-order">取消订单</button>
+        <a th:href="@{/order/list}" class="btn btn-primary">返回订单列表</a>
+        <a th:href="@{/user/index}" class="btn btn-warning">继续购物</a>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelButton = document.querySelector('.cancel-order');
+        const notification = document.getElementById('notification');
+        
+        // 确保返回按钮保持登录状态
+        const returnButton = document.querySelector('.btn-primary');
+        const shopButton = document.querySelector('.btn-warning');
+        
+        returnButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = "/order/list";
+        });
+        
+        shopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = "/user/index";
+        });
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = 'notification ' + (isError ? 'error' : 'success');
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 取消订单
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-id');
+                
+                if (confirm('确定要取消这个订单吗？')) {
+                    fetch(`/order/cancel/${orderId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message);
+                            // 刷新页面
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(data.message, true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('操作失败，请稍后重试', true);
+                    });
+                }
+            });
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html> 
