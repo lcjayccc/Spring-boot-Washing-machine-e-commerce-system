@@ -28,11 +28,35 @@
             <label for="phone">手机号：</label>
             <input type="text" id="phone" name="phone" required th:value="${phone}">
         </div>
+        <div class="form-group">
+            <label for="captcha">验证码：</label>
+            <div class="captcha-container">
+                <input type="text" id="captcha" name="captcha" required maxlength="4" style="width: 100px;">
+                <img th:src="${captchaImage}" id="captchaImage" class="captcha-img" title="点击刷新验证码">
+                <span class="captcha-refresh" onclick="refreshCaptcha()" title="刷新验证码">⟳</span>
+            </div>
+        </div>
         <button type="submit" class="btn-login">注册</button>
-        <div style="margin-top:10px;">
+        <div class="register-link">
             <a th:href="@{/user/login}">已有账号？去登录</a>
         </div>
     </form>
 </div>
+
+<script>
+    // 刷新验证码
+    function refreshCaptcha() {
+        fetch('/captcha/refresh')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('captchaImage').src = data;
+                document.getElementById('captcha').value = ''; // 清空验证码输入框
+            })
+            .catch(error => console.error('刷新验证码失败:', error));
+    }
+    
+    // 点击验证码图片刷新验证码
+    document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+</script>
 </body>
 </html> 

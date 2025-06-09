@@ -10,6 +10,7 @@ import com.lc.finalexam.entity.CategoryChild;
 import com.lc.finalexam.service.UserService;
 import com.lc.finalexam.service.ProductService;
 import com.lc.finalexam.service.CategoryService;
+import com.lc.finalexam.util.CaptchaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.context.MessageSource;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.List;
 
@@ -38,39 +40,61 @@ public class UserController {
     @Autowired
     private MessageSource messageSource;
 
-    // 跳转到用户登录页面
-    @GetMapping("/login")
-    public String loginPage() {
-        return "user_login";
-    }
-
-    // 用户登录表单处理
-    @PostMapping("/login")
-    public String login(@ModelAttribute @Valid UserLoginDTO dto, HttpSession session, Model model) {
-        User user = null;
-        if (dto.getLoginKey() != null) {
-            user = userService.getUserByUsername(dto.getLoginKey());
-            if (user == null) user = userService.getUserById(tryParseInt(dto.getLoginKey()));
-        }
-        if (user != null && user.getPassword().equals(dto.getPassword())) {
-            session.setAttribute("user", user);
-            model.addAttribute("message", "登录成功");
-            return "redirect:/user/index";
-        }
-        model.addAttribute("errorMessage", "用户名/邮箱/手机号或密码错误");
-        model.addAttribute("loginKey", dto.getLoginKey());
-        return "user_login";
-    }
+    // 跳转到用户登录页面已移至LoginController
+    
+    // 用户登录表单处理已移至LoginController
 
     // 跳转到用户注册页面
     @GetMapping("/register")
-    public String registerPage() {
-        return "user_register";
+    public String registerPage(Model model, HttpSession session) {
+        try {
+            // 生成验证码
+            String captchaCode = CaptchaUtil.generateCaptchaCode();
+            String captchaBase64 = CaptchaUtil.generateBase64Captcha(captchaCode);
+            
+            // 将验证码存入会话
+            session.setAttribute("captchaCode", captchaCode);
+            model.addAttribute("captchaImage", captchaBase64);
+            
+            return "user_register";
+        } catch (IOException e) {
+            // 验证码生成失败处理
+            return "user_register";
+        }
     }
 
     // 用户注册表单处理
     @PostMapping("/register")
-    public String register(@ModelAttribute @Valid UserRegisterDTO dto, BindingResult bindingResult, Model model, Locale locale) {
+    public String register(@ModelAttribute @Valid UserRegisterDTO dto, 
+                          @RequestParam String captcha,
+                          BindingResult bindingResult, 
+                          Model model, 
+                          HttpSession session,
+                          Locale locale) {
+        // 验证码校验
+        String sessionCaptcha = (String) session.getAttribute("captchaCode");
+        if (sessionCaptcha == null || !sessionCaptcha.equalsIgnoreCase(captcha)) {
+            model.addAttribute("errorMessage", "验证码错误");
+            model.addAttribute("username", dto.getUsername());
+            model.addAttribute("email", dto.getEmail());
+            model.addAttribute("phone", dto.getPhone());
+            
+            try {
+                // 重新生成验证码
+                String newCaptchaCode = CaptchaUtil.generateCaptchaCode();
+                String newCaptchaBase64 = CaptchaUtil.generateBase64Captcha(newCaptchaCode);
+                session.setAttribute("captchaCode", newCaptchaCode);
+                model.addAttribute("captchaImage", newCaptchaBase64);
+            } catch (IOException e) {
+                // 忽略验证码生成错误
+            }
+            
+            return "user_register";
+        }
+        
+        // 验证码使用后立即清除，防止重复使用
+        session.removeAttribute("captchaCode");
+        
         if (bindingResult.hasErrors()) {
             String key = bindingResult.getFieldError().getDefaultMessage();
             String errorMsg = messageSource.getMessage(key, null, key, locale);
@@ -78,6 +102,17 @@ public class UserController {
             model.addAttribute("username", dto.getUsername());
             model.addAttribute("email", dto.getEmail());
             model.addAttribute("phone", dto.getPhone());
+            
+            try {
+                // 重新生成验证码
+                String newCaptchaCode = CaptchaUtil.generateCaptchaCode();
+                String newCaptchaBase64 = CaptchaUtil.generateBase64Captcha(newCaptchaCode);
+                session.setAttribute("captchaCode", newCaptchaCode);
+                model.addAttribute("captchaImage", newCaptchaBase64);
+            } catch (IOException e) {
+                // 忽略验证码生成错误
+            }
+            
             return "user_register";
         }
         User user = new User();
@@ -85,16 +120,28 @@ public class UserController {
         user.setPassword(dto.getPassword());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
+        user.setRole("USER"); // 设置角色为普通用户
         User saved = userService.register(user);
         if (saved == null) {
             model.addAttribute("errorMessage", "用户名/邮箱/手机号已存在");
             model.addAttribute("username", dto.getUsername());
             model.addAttribute("email", dto.getEmail());
             model.addAttribute("phone", dto.getPhone());
+            
+            try {
+                // 重新生成验证码
+                String newCaptchaCode = CaptchaUtil.generateCaptchaCode();
+                String newCaptchaBase64 = CaptchaUtil.generateBase64Captcha(newCaptchaCode);
+                session.setAttribute("captchaCode", newCaptchaCode);
+                model.addAttribute("captchaImage", newCaptchaBase64);
+            } catch (IOException e) {
+                // 忽略验证码生成错误
+            }
+            
             return "user_register";
         }
         model.addAttribute("message", "注册成功，请登录");
-        return "redirect:/user/login";
+        return "redirect:/unified-login";
     }
 
 
@@ -265,7 +312,7 @@ public class UserController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        return "redirect:/user/login";
+        return "redirect:/unified-login";
     }
 
     private Integer tryParseInt(String s) {
