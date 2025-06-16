@@ -2,36 +2,64 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>洗衣机分类展示</title>
+    <title>洗衣机分类与商品展示</title>
     <link rel="stylesheet" th:href="@{/css/CategorylistStyle.css}">
 </head>
 <body>
-<div class="page-header">
-    <h1 class="page-title">洗衣机分类与商品展示</h1>
-    <div class="header-buttons">
-        <a th:href="@{/category/addChild}" class="add-btn">新增子分类</a>
-        <a th:href="@{/product/add}" class="add-btn">新增商品</a>
-        <a th:href="@{/admin/order/list}" class="add-btn">订单管理</a>
-        <a th:href="@{/logout}" class="logout-btn">注销</a>
-    </div>
-</div>
-<div th:if="${session.message != null}" class="message" th:text="${session.message}"></div>
-<div class="filter-section">
-    <div class="filter-group" th:each="parent : ${categories}">
-        <div class="filter-title">
-            <span th:text="${parent.name}"></span>
-            <span class="edit-link">
-                    <a th:href="@{'/category/editChild/' + ${parent.id}}">编辑</a>
-                </span>
-        </div>
-        <div class="filter-options">
-            <div class="filter-item" th:each="child : ${parent.children}">
-                <a th:href="@{'/product/list?childId=' + ${child.id}}" th:text="${child.name}"></a>
-                <form th:action="@{/category/deleteChild/{id}(id=${child.id})}" method="get" class="delete-form"
-                      onsubmit="return confirm('确定要删除这个分类吗？此操作无法撤销！');">
-                    <button type="submit" class="delete-btn">×</button>
-                </form>
+<div class="container">
+    <div class="header">
+        <h1 class="title">洗衣机分类与商品展示</h1>
+        <div class="user-info">
+            <div th:if="${session.adminUser != null}" style="margin-right:10px;">
+                <img th:if="${session.adminUser.avatarUrl != null}" th:src="@{${session.adminUser.avatarUrl}}" alt="头像" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;">
+                <span th:text="'欢迎，管理员 ' + ${session.adminUser.username}"></span>
             </div>
+            <a th:href="@{/category/addChild}" class="btn-edit">新增子分类</a>
+            <a th:href="@{/product/add}" class="btn-edit">新增商品</a>
+            <a th:href="@{/admin/order/list}" class="btn-edit">订单管理</a>
+            <a th:href="@{/product/list}" class="btn-edit">商品管理</a>
+            <a th:href="@{/logout}" class="btn-delete">注销</a>
+        </div>
+    </div>
+
+    <div th:if="${session.message != null}" class="message" th:text="${session.message}"></div>
+    
+    <div class="filter-section">
+        <div class="filter-group" th:each="parent : ${categories}">
+            <div class="filter-title">
+                <span th:text="${parent.name}"></span>
+            </div>
+            <div class="filter-options">
+                <div class="filter-item" th:each="child : ${parent.children}">
+                    <a th:href="@{'/product/list?childId=' + ${child.id}}" th:text="${child.name}"></a>
+                    <form th:action="@{/category/deleteChild/{id}(id=${child.id})}" method="get" class="delete-form"
+                        onsubmit="return confirm('确定要删除这个分类吗？此操作无法撤销！');">
+                        <button type="submit" class="delete-btn">×</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-shortcuts">
+        <h3>快速操作</h3>
+        <div class="shortcut-grid">
+            <a th:href="@{/product/list}" class="shortcut-card">
+                <div class="shortcut-icon">📋</div>
+                <div class="shortcut-label">商品列表</div>
+            </a>
+            <a th:href="@{/admin/order/list}" class="shortcut-card">
+                <div class="shortcut-icon">📦</div>
+                <div class="shortcut-label">订单管理</div>
+            </a>
+            <a th:href="@{/product/add}" class="shortcut-card">
+                <div class="shortcut-icon">➕</div>
+                <div class="shortcut-label">新增商品</div>
+            </a>
+            <a th:href="@{/category/addChild}" class="shortcut-card">
+                <div class="shortcut-icon">🏷️</div>
+                <div class="shortcut-label">新增分类</div>
+            </a>
         </div>
     </div>
 </div>

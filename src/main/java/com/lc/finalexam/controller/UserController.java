@@ -40,9 +40,7 @@ public class UserController {
     @Autowired
     private MessageSource messageSource;
 
-    // 跳转到用户登录页面已移至LoginController
     
-    // 用户登录表单处理已移至LoginController
 
     // 跳转到用户注册页面
     @GetMapping("/register")
@@ -59,7 +57,7 @@ public class UserController {
             return "user_register";
         } catch (IOException e) {
             // 验证码生成失败处理
-            return "user_register";
+        return "user_register";
         }
     }
 

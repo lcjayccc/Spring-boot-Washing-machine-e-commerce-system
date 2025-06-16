@@ -47,11 +47,22 @@ public class ProductServiceImpl implements ProductService {
             return getAllProducts();
         }
         
-        // 同时搜索名称和型号，去重后返回
-        Set<Product> products = new HashSet<>();
-        products.addAll(productRepo.findByNameContaining(keyword));
-        products.addAll(productRepo.findByModelContaining(keyword));
+        String trimmedKeyword = keyword.trim();
         
-        return new ArrayList<>(products);
+        // 同时搜索名称、型号和描述，去重后返回
+        Set<Product> products = new HashSet<>();
+        products.addAll(productRepo.findByNameContaining(trimmedKeyword));
+        products.addAll(productRepo.findByModelContaining(trimmedKeyword));
+        
+        // 搜索产品描述
+        if (productRepo.findByDescriptionContaining(trimmedKeyword) != null) {
+            products.addAll(productRepo.findByDescriptionContaining(trimmedKeyword));
+        }
+        
+        // 将搜索结果按ID排序
+        List<Product> sortedProducts = new ArrayList<>(products);
+        sortedProducts.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
+        
+        return sortedProducts;
     }
 }

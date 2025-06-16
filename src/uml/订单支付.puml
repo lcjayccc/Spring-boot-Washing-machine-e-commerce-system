@@ -1,0 +1,84 @@
+@startuml
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam actor {
+  BorderColor black
+  BackgroundColor #E2EFDA
+  FontSize 13
+}
+
+skinparam boundary {
+  BorderColor black
+  BackgroundColor #B4C7E7
+  FontSize 13
+}
+
+skinparam control {
+  BorderColor black
+  BackgroundColor #FFD966
+  FontSize 13
+}
+
+skinparam entity {
+  BorderColor black
+  BackgroundColor #F4B084
+  FontSize 13
+}
+
+skinparam note {
+  BorderColor gray
+  BackgroundColor #FFFFA0
+  FontSize 12
+}
+
+skinparam ranksep 80
+skinparam nodesep 70
+
+actor 用户 as User
+
+boundary "购物车页面" as CartPage
+boundary "结算页面" as CheckoutPage
+boundary "支付页面" as PaymentPage
+boundary "订单确认页面" as OrderConfirmPage
+
+control "订单控制器" as OrderController
+control "支付控制器" as PaymentController
+control "订单服务" as OrderService
+control "支付服务" as PaymentService
+control "购物车服务" as CartService
+
+entity "订单" as Order
+entity "订单项" as OrderItem
+entity "支付记录" as Payment
+entity "商品" as Product
+
+User -down-> CartPage : 选择商品结算
+User -right-> CheckoutPage : 填写信息
+User -right-> PaymentPage : 进行支付
+User -down-> OrderConfirmPage : 查看结果
+
+CartPage -down-> OrderController : 发起结算
+CheckoutPage -down-> OrderController : 提交订单
+PaymentPage -down-> PaymentController : 处理支付
+
+OrderController -down-> OrderService : 调用
+OrderController -left-> CartService : 调用
+PaymentController -down-> PaymentService : 调用
+PaymentService -left-> OrderService : 更新订单状态
+
+OrderService -down-> Order : 创建/修改
+OrderService -right-> OrderItem : 创建
+OrderService -down-> Product : 锁定库存
+PaymentService -down-> Payment : 创建
+PaymentService -right-> Order : 更新状态
+
+note bottom of CartPage : 选择结算商品
+note bottom of CheckoutPage : 收货信息表单
+note bottom of PaymentPage : 支付方式选择
+note right of OrderService : 创建订单\n锁定库存\n移除购物车商品
+note right of PaymentService : 处理支付\n更新订单状态
+@enduml

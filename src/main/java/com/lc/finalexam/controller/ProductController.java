@@ -58,6 +58,22 @@ public class ProductController {
                 .map(categoryService::getChildCategoryById)
                 .toList();
         product.setCategories(children);
+        
+        // 确保状态字段有默认值
+        if (product.getStatus() == null) {
+            product.setStatus(Product.STATUS_ACTIVE);
+        }
+        
+        // 如果库存为null但状态是上架，则设置默认库存为0
+        if (product.getStock() == null) {
+            product.setStock(0);
+        }
+        
+        // 根据库存情况自动设置状态
+        if (product.getStock() <= 0 && Product.STATUS_ACTIVE.equals(product.getStatus())) {
+            product.setStatus(Product.STATUS_OUT_OF_STOCK);
+        }
+        
         productService.saveProduct(product);
         return "redirect:/product/list";
     }
@@ -97,6 +113,24 @@ public class ProductController {
                 .map(categoryService::getChildCategoryById)
                 .toList();
         product.setCategories(children);
+        
+        // 确保状态字段有值
+        if (product.getStatus() == null) {
+            product.setStatus(Product.STATUS_ACTIVE);
+        }
+        
+        // 确保库存字段有值
+        if (product.getStock() == null) {
+            product.setStock(0);
+        }
+        
+        // 根据库存情况自动更新状态
+        if (product.getStock() <= 0 && Product.STATUS_ACTIVE.equals(product.getStatus())) {
+            product.setStatus(Product.STATUS_OUT_OF_STOCK);
+        } else if (product.getStock() > 0 && Product.STATUS_OUT_OF_STOCK.equals(product.getStatus())) {
+            product.setStatus(Product.STATUS_ACTIVE);
+        }
+        
         productService.saveProduct(product);
         // 修改后重定向回当前分类下的商品列表
         if (childId != null) {
@@ -116,5 +150,27 @@ public class ProductController {
         } else {
             return "redirect:/product/list";
         }
+    }
+
+    // 商品搜索功能
+    @GetMapping("/search")
+    public String searchProducts(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "childId", required = false) Integer childId,
+            Model model) {
+        
+        List<Product> products = productService.searchProducts(keyword);
+        
+        // 添加搜索关键词到模型中，以便在页面上回显
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("products", products);
+        
+        // 如果指定了分类，添加分类信息
+        if (childId != null) {
+            CategoryChild category = categoryService.getChildCategoryById(childId);
+            model.addAttribute("category", category);
+        }
+        
+        return "product_list";
     }
 }

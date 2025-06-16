@@ -22,6 +22,9 @@ import java.util.Random;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
+    
+    // 使用静态Random实例，提高随机性
+    private static final Random random = new Random();
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -92,8 +95,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
         
         try {
-            // 模拟支付处理，有80%的概率支付成功
-            boolean isSuccess = new Random().nextInt(100) < 80;
+            // 模拟支付处理，有20%的概率支付成功
+            boolean isSuccess = random.nextInt(100) < 20;
             
             if (isSuccess) {
                 // 支付成功
@@ -201,8 +204,8 @@ public class PaymentServiceImpl implements PaymentService {
         // 生成格式为：P+年月日时分秒+6位随机数的支付流水号
         LocalDateTime now = LocalDateTime.now();
         String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String random = String.format("%06d", new Random().nextInt(1000000));
-        return "P" + timestamp + random;
+        String randomStr = String.format("%06d", random.nextInt(1000000));
+        return "P" + timestamp + randomStr;
     }
     
     // 生成模拟的第三方交易ID
@@ -210,8 +213,8 @@ public class PaymentServiceImpl implements PaymentService {
         // 生成格式为：T+年月日+10位随机数的交易ID
         LocalDateTime now = LocalDateTime.now();
         String date = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String random = String.format("%010d", new Random().nextInt(1000000000));
-        return "T" + date + random;
+        String randomStr = String.format("%010d", random.nextInt(1000000000));
+        return "T" + date + randomStr;
     }
     
     // 检查支付方式是否支持

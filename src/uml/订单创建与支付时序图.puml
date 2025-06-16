@@ -1,0 +1,89 @@
+@startuml
+actor 用户 as User
+participant "购物车页面" as CartPage
+participant "结算页面" as CheckoutPage
+participant "支付页面" as PaymentPage
+participant "订单控制器" as OrderController
+participant "支付控制器" as PaymentController
+participant "订单服务" as OrderService
+participant "购物车服务" as CartService
+participant "支付服务" as PaymentService
+participant "商品服务" as ProductService
+participant "订单仓库" as OrderRepo
+participant "支付仓库" as PaymentRepo
+
+User -> CartPage : 1.选择商品并点击"结算"
+activate CartPage
+CartPage -> CheckoutPage : 2.跳转并传递选中商品ID
+deactivate CartPage
+activate CheckoutPage
+User -> CheckoutPage : 3.填写收货信息和备注
+User -> CheckoutPage : 4.点击"提交订单"
+CheckoutPage -> OrderController : 5.createOrder(userId, cartItemIds, shippingInfo)
+activate OrderController
+
+OrderController -> CartService : 6.getCartItems(userId, cartItemIds)
+activate CartService
+CartService --> OrderController : 7.返回选中的购物车项
+deactivate CartService
+
+OrderController -> OrderService : 8.createOrder(userId, cartItems, shippingInfo)
+activate OrderService
+OrderService -> ProductService : 9.checkAndLockStock(items)
+activate ProductService
+
+alt 库存充足
+    ProductService --> OrderService : 10.返回成功
+    deactivate ProductService
+    OrderService -> OrderRepo : 11.saveOrder(order)
+    activate OrderRepo
+    OrderRepo --> OrderService : 12.返回保存的订单
+    deactivate OrderRepo
+    OrderService -> CartService : 13.removeCartItems(cartItemIds)
+    OrderService --> OrderController : 14.返回订单
+    OrderController -> PaymentPage : 15.重定向到支付页面(orderId)
+    deactivate OrderController
+    deactivate CheckoutPage
+    activate PaymentPage
+
+    User -> PaymentPage : 16.选择支付方式并确认支付
+    PaymentPage -> PaymentController : 17.processPayment(orderId, paymentMethod)
+    activate PaymentController
+    PaymentController -> PaymentService : 18.processPayment(orderId, paymentMethod)
+    activate PaymentService
+    PaymentService -> OrderRepo : 19.getOrderById(orderId)
+    activate OrderRepo
+    OrderRepo --> PaymentService : 20.返回订单
+    deactivate OrderRepo
+    PaymentService -> PaymentService : 21.模拟支付处理
+
+    alt 支付成功
+        PaymentService -> PaymentRepo : 22a.savePayment(payment)
+        PaymentService -> OrderService : 23a.updateOrderStatus(orderId, PAID)
+        activate OrderService
+        OrderService -> OrderRepo : 24a.updateOrderStatus(orderId, PAID)
+        OrderService --> PaymentService : 25a.返回更新后的订单
+        deactivate OrderService
+        PaymentService --> PaymentController : 26a.返回成功
+        PaymentController --> PaymentPage : 27a.返回成功
+        PaymentPage --> User : 28a.显示支付成功页面
+    else 支付失败
+        PaymentService --> PaymentController : 22b.返回错误
+        PaymentController --> PaymentPage : 23b.返回错误
+        PaymentPage --> User : 24b.显示支付失败提示
+    end
+    deactivate PaymentService
+    deactivate PaymentController
+    deactivate PaymentPage
+
+else 库存不足
+    ProductService --> OrderService : 10.抛出InsufficientStockException
+    deactivate ProductService
+    OrderService --> OrderController : 11.返回错误
+    OrderController --> CheckoutPage : 12.返回错误
+    CheckoutPage --> User : 13.显示库存不足提示
+    deactivate OrderService
+    deactivate OrderController
+    deactivate CheckoutPage
+end
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+actor 用户 as User
+participant "商品详情页面" as ProductDetail
+participant "购物车控制器" as CartController
+participant "购物车服务" as CartService
+participant "商品仓库" as ProductRepo
+participant "购物车仓库" as CartRepo
+participant "购物车" as Cart
+participant "购物车项" as CartItem
+
+User -> ProductDetail : 1.查看商品详情
+User -> ProductDetail : 2.点击"加入购物车"
+activate ProductDetail
+ProductDetail -> CartController : 3.addToCart(productId, quantity)
+activate CartController
+CartController -> CartService : 4.addProductToCart(userId, productId, quantity)
+activate CartService
+CartService -> ProductRepo : 5.getProductById(productId)
+activate ProductRepo
+ProductRepo --> CartService : 6.返回商品信息
+deactivate ProductRepo
+CartService -> CartService : 7.检查库存
+
+alt 库存充足
+    CartService -> CartRepo : 8.getCartByUserId(userId)
+    activate CartRepo
+    CartRepo --> CartService : 9.返回购物车
+    deactivate CartRepo
+
+    alt 购物车中已有该商品
+        CartService -> CartRepo : 10a.updateCartItemQuantity(cartItemId, newQuantity)
+    else 购物车中没有该商品
+        CartService -> CartItem : 10b.创建新购物车项
+        CartService -> CartRepo : 10c.saveCartItem(cartItem)
+    end
+
+    CartService --> CartController : 11.返回成功
+    CartController --> ProductDetail : 12.返回成功
+    ProductDetail --> User : 13.显示"添加成功"提示
+else 库存不足
+    CartService --> CartController : 11.抛出InsufficientStockException
+    CartController --> ProductDetail : 12.返回错误
+    ProductDetail --> User : 13.显示"库存不足"提示
+end
+
+deactivate CartService
+deactivate CartController
+deactivate ProductDetail
+@enduml

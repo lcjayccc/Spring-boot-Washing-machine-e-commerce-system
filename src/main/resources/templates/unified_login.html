@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>登录系统</title>
+    <link rel="stylesheet" th:href="@{/css/LoginStyle.css}">
+</head>
+<body>
+<div class="login-container">
+    <h2 id="login-title">用户登录</h2>
+    
+    <div class="role-selector">
+        <button type="button" class="role-btn active" id="user-role-btn" onclick="switchRole('user')">用户登录</button>
+        <button type="button" class="role-btn" id="admin-role-btn" onclick="switchRole('admin')">管理员登录</button>
+    </div>
+    
+    <div th:if="${message != null or errorMessage != null}"
+         th:classappend="${errorMessage != null} ? 'error-message' : 'success-message'">
+        <span th:text="${message != null ? message : errorMessage}"></span>
+    </div>
+    
+    <form id="loginForm" th:action="@{/unified-login}" method="post">
+        <div class="form-group">
+            <label id="usernameLabel" for="loginInput">用户账号：</label>
+            <input type="text" id="loginInput" name="loginInput" required th:value="${loginKey != null ? loginKey : (username != null ? username : '')}">
+        </div>
+        <div class="form-group">
+            <label for="password">密码：</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="captcha">验证码：</label>
+            <div class="captcha-container">
+                <input type="text" id="captcha" name="captcha" required maxlength="4" style="width: 100px;">
+                <img th:src="${captchaImage}" id="captchaImage" class="captcha-img" title="点击刷新验证码">
+                <span class="captcha-refresh" onclick="refreshCaptcha()" title="刷新验证码">⟳</span>
+            </div>
+        </div>
+        <input type="hidden" id="userRole" name="userRole" value="user">
+        <button type="submit" class="btn-login">登录</button>
+        <div class="register-link" id="register-container">
+            <a th:href="@{/user/register}">没有账号？去注册</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function switchRole(role) {
+        const loginTitle = document.getElementById('login-title');
+        const usernameLabel = document.getElementById('usernameLabel');
+        const registerContainer = document.getElementById('register-container');
+        const userRoleBtn = document.getElementById('user-role-btn');
+        const adminRoleBtn = document.getElementById('admin-role-btn');
+        const userRoleInput = document.getElementById('userRole');
+        
+        if (role === 'user') {
+            loginTitle.innerText = '用户登录';
+            usernameLabel.innerText = '用户账号：';
+            registerContainer.style.display = 'block';
+            userRoleBtn.classList.add('active');
+            adminRoleBtn.classList.remove('active');
+            userRoleInput.value = 'user';
+        } else {
+            loginTitle.innerText = '洗衣机管理员登录';
+            usernameLabel.innerText = '管理员账号：';
+            registerContainer.style.display = 'none';
+            adminRoleBtn.classList.add('active');
+            userRoleBtn.classList.remove('active');
+            userRoleInput.value = 'admin';
+        }
+    }
+    
+    // 刷新验证码
+    function refreshCaptcha() {
+        fetch('/captcha/refresh')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('captchaImage').src = data;
+                document.getElementById('captcha').value = ''; // 清空验证码输入框
+            })
+            .catch(error => console.error('刷新验证码失败:', error));
+    }
+    
+    // 点击验证码图片刷新验证码
+    document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+    
+    // 从URL参数获取角色并自动切换
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role');
+    if (role === 'admin') {
+        switchRole('admin');
+    }
+    if (role === 'user') {
+        switchRole('user');
+    }
+</script>
+</body>
+</html> 

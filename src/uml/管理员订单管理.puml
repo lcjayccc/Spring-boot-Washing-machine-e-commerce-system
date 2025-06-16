@@ -1,0 +1,71 @@
+@startuml
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam actor {
+  BorderColor black
+  BackgroundColor #E2EFDA
+  FontSize 13
+}
+
+skinparam boundary {
+  BorderColor black
+  BackgroundColor #B4C7E7
+  FontSize 13
+}
+
+skinparam control {
+  BorderColor black
+  BackgroundColor #FFD966
+  FontSize 13
+}
+
+skinparam entity {
+  BorderColor black
+  BackgroundColor #F4B084
+  FontSize 13
+}
+
+skinparam note {
+  BorderColor gray
+  BackgroundColor #FFFFA0
+  FontSize 12
+}
+
+skinparam ranksep 80
+skinparam nodesep 70
+
+actor 管理员 as Admin
+
+boundary "订单列表页面" as OrderListPage
+boundary "订单详情页面" as OrderDetailPage
+
+control "管理员订单控制器" as AdminOrderController
+control "订单服务" as OrderService
+control "商品服务" as ProductService
+
+entity "订单" as Order
+entity "订单项" as OrderItem
+entity "商品" as Product
+
+Admin -down-> OrderListPage : 查看订单列表
+Admin -right-> OrderDetailPage : 查看订单详情
+
+OrderListPage -down-> AdminOrderController : 获取订单列表
+OrderDetailPage -down-> AdminOrderController : 发货/取消订单
+
+AdminOrderController -down-> OrderService : 调用
+OrderService -right-> ProductService : 取消订单时调用
+OrderService -down-> Order : 操作
+OrderService -right-> OrderItem : 引用
+ProductService -down-> Product : 更新库存
+
+note bottom of OrderListPage : 显示所有订单\n按状态筛选
+note bottom of OrderDetailPage : 订单详情展示\n操作按钮
+note right of AdminOrderController : 处理管理员订单请求
+note right of OrderService : 订单状态管理\n订单统计
+note right of ProductService : 取消订单时\n恢复商品库存
+@enduml

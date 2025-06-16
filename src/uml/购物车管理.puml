@@ -1,0 +1,68 @@
+@startuml
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam actor {
+  BorderColor black
+  BackgroundColor #E2EFDA
+  FontSize 13
+}
+
+skinparam boundary {
+  BorderColor black
+  BackgroundColor #B4C7E7
+  FontSize 13
+}
+
+skinparam control {
+  BorderColor black
+  BackgroundColor #FFD966
+  FontSize 13
+}
+
+skinparam entity {
+  BorderColor black
+  BackgroundColor #F4B084
+  FontSize 13
+}
+
+skinparam note {
+  BorderColor gray
+  BackgroundColor #FFFFA0
+  FontSize 12
+}
+
+skinparam ranksep 80
+skinparam nodesep 80
+
+actor 用户 as User
+
+boundary "商品详情页面" as ProductDetail
+boundary "购物车页面" as CartPage
+
+control "购物车控制器" as CartController
+control "购物车服务" as CartService
+
+entity "购物车" as Cart
+entity "购物车项" as CartItem
+entity "商品" as Product
+
+User -down-> ProductDetail : 浏览
+User -down-> CartPage : 访问
+
+ProductDetail -right-> CartController : 加入购物车
+CartPage -right-> CartController : 修改/删除购物车
+
+CartController -down-> CartService : 调用
+CartService -down-> Cart : 操作
+CartService -right-> CartItem : 操作
+CartService -left-> Product : 引用
+
+note bottom of ProductDetail : 添加商品到购物车
+note bottom of CartPage : 管理购物车项
+note bottom of CartController : 处理购物车操作\n检查库存状态
+note bottom of CartService : 实现购物车业务逻辑
+@enduml

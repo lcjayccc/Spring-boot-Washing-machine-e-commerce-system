@@ -8,7 +8,6 @@ public class UserProfileDTO {
 
     private String phone;
 
-    
     private String email;
 
     private String avatarUrl;
