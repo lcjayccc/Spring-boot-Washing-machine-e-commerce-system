@@ -1,24 +1,54 @@
 package com.lc.finalexam.service.impl;
 
+import com.lc.finalexam.dto.ProductQuery;
 import com.lc.finalexam.entity.Product;
 import com.lc.finalexam.repository.ProductRepository;
+import com.lc.finalexam.repository.ProductSpecifications;
 import com.lc.finalexam.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-    @Autowired
-    private ProductRepository productRepo;
+    private static final List<String> VISIBLE_STATUSES = List.of(
+            Product.STATUS_ACTIVE, Product.STATUS_OUT_OF_STOCK);
+
+    private final ProductRepository productRepo;
+
+    public ProductServiceImpl(ProductRepository productRepo) {
+        this.productRepo = productRepo;
+    }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<Product> queryVisibleProducts(ProductQuery query) {
+        Pageable pageable = PageRequest.of(
+                query.getPageNum() - 1,
+                query.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "id"));
+        return productRepo.findAll(ProductSpecifications.visibleWith(query), pageable);
+    }
+
+    @Override
+    @Transactional
+    public void offShelf(Integer id) {
+        Product product = productRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
+        product.offShelf();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Product> getAllProducts() {
-        return productRepo.findAll();
+        return productRepo.findAll(
+                ProductSpecifications.visibleWith(new ProductQuery()),
+                Sort.by(Sort.Direction.DESC, "id"));
     }
 
     @Override
@@ -37,32 +67,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByCategoryChildId(Integer categoryChildId) {
-        return productRepo.findByCategories_Id(categoryChildId);
+        return productRepo.findByCategories_IdAndStatusIn(categoryChildId, VISIBLE_STATUSES);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<Product> searchProducts(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return getAllProducts();
-        }
-        
-        String trimmedKeyword = keyword.trim();
-        
-        // 同时搜索名称、型号和描述，去重后返回
-        Set<Product> products = new HashSet<>();
-        products.addAll(productRepo.findByNameContaining(trimmedKeyword));
-        products.addAll(productRepo.findByModelContaining(trimmedKeyword));
-        
-        // 搜索产品描述
-        if (productRepo.findByDescriptionContaining(trimmedKeyword) != null) {
-            products.addAll(productRepo.findByDescriptionContaining(trimmedKeyword));
-        }
-        
-        // 将搜索结果按ID排序
-        List<Product> sortedProducts = new ArrayList<>(products);
-        sortedProducts.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
-        
-        return sortedProducts;
+        ProductQuery query = new ProductQuery();
+        query.setName(keyword);
+        return productRepo.findAll(
+                ProductSpecifications.visibleWith(query),
+                Sort.by(Sort.Direction.DESC, "id"));
     }
 }
