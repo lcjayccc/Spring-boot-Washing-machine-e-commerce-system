@@ -20,6 +20,11 @@ public final class ProductSpecifications {
             predicates.add(root.get("status").in(
                     List.of(Product.STATUS_ACTIVE, Product.STATUS_OUT_OF_STOCK)));
 
+            if (request.getChildId() != null) {
+                predicates.add(criteriaBuilder.equal(
+                        root.join("categories").get("id"), request.getChildId()));
+            }
+
             if (request.normalizedProductCode() != null) {
                 predicates.add(criteriaBuilder.equal(
                         root.get("productCode"), request.normalizedProductCode()));

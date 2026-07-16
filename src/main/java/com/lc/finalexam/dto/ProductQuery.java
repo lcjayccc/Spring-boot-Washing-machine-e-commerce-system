@@ -9,6 +9,7 @@ public class ProductQuery {
     private String productCode;
     private String name;
     private String stockLocation;
+    private Integer childId;
 
     @Min(1)
     private Integer pageNum = 1;
