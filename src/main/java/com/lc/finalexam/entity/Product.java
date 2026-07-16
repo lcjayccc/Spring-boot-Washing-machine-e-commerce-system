@@ -23,6 +23,12 @@ public class Product {
     private String imageUrl;
     private String description;
 
+    @Column(name = "product_code", length = 64, unique = true)
+    private String productCode;
+
+    @Column(name = "stock_location", length = 100)
+    private String stockLocation;
+
     private Integer stock; // 库存数量
     private String status; // 商品状态，如"上架"/"下架"
     
@@ -30,6 +36,10 @@ public class Product {
     public static final String STATUS_ACTIVE = "ACTIVE";    // 上架
     public static final String STATUS_INACTIVE = "INACTIVE"; // 下架
     public static final String STATUS_OUT_OF_STOCK = "OUT_OF_STOCK"; // 缺货
+
+    public void offShelf() {
+        this.status = STATUS_INACTIVE;
+    }
     
     // 库存操作方法
     public void decreaseStock(int quantity) {
