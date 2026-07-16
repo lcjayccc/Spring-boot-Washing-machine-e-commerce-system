@@ -53,6 +53,11 @@
         <div class="product-properties">
             <div class="properties-title">基本信息</div>
             <div class="form-group">
+                <label for="productCode">商品编码:</label>
+                <input type="text" id="productCode" name="productCode" th:value="${product.productCode}"
+                       maxlength="64" required placeholder="例如：WM-2026-001">
+            </div>
+            <div class="form-group">
                 <label for="name">商品名称:</label>
                 <input type="text" id="name" name="name" required placeholder="请输入商品名称">
             </div>
@@ -68,6 +73,11 @@
         
         <div class="product-properties">
             <div class="properties-title">库存与状态</div>
+            <div class="form-group">
+                <label for="stockLocation">库存地点:</label>
+                <input type="text" id="stockLocation" name="stockLocation" th:value="${product.stockLocation}"
+                       maxlength="100" placeholder="例如：A1仓库">
+            </div>
             <div class="form-group">
                 <label for="stock">库存数量:</label>
                 <input type="number" id="stock" name="stock" min="0" required placeholder="请输入库存数量">
