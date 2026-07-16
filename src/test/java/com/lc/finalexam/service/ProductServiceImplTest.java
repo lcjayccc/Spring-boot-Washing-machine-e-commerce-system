@@ -42,13 +42,17 @@ class ProductServiceImplTest {
         ProductQuery query = new ProductQuery();
         query.setPageNum(2);
         query.setPageSize(5);
-        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+        when(repository.findAll(
+                org.mockito.ArgumentMatchers.<Specification<Product>>any(),
+                any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         service.queryVisibleProducts(query);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(repository).findAll(any(Specification.class), pageableCaptor.capture());
+        verify(repository).findAll(
+                org.mockito.ArgumentMatchers.<Specification<Product>>any(),
+                pageableCaptor.capture());
         Pageable pageable = pageableCaptor.getValue();
         assertThat(pageable.getPageNumber()).isEqualTo(1);
         assertThat(pageable.getPageSize()).isEqualTo(5);
@@ -101,6 +105,8 @@ class ProductServiceImplTest {
         service.searchProducts(" drum ");
 
         verify(repository, org.mockito.Mockito.times(2))
-                .findAll(any(Specification.class), any(Sort.class));
+                .findAll(
+                        org.mockito.ArgumentMatchers.<Specification<Product>>any(),
+                        any(Sort.class));
     }
 }
