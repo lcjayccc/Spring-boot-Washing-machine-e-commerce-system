@@ -1,35 +1,50 @@
 package com.lc.finalexam.controller;
 
+import com.lc.finalexam.dto.ProductQuery;
 import com.lc.finalexam.entity.Product;
 import com.lc.finalexam.entity.CategoryChild;
 import com.lc.finalexam.service.ProductService;
 import com.lc.finalexam.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
 @Controller
 @RequestMapping("/product")
 public class ProductController {
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private CategoryService categoryService;
+    private final ProductService productService;
+    private final CategoryService categoryService;
 
-    // 显示所有商品
+    public ProductController(ProductService productService, CategoryService categoryService) {
+        this.productService = productService;
+        this.categoryService = categoryService;
+    }
+
+    // 管理端商品条件分页列表
     @GetMapping("/list")
-    public String listProducts(@RequestParam(value = "childId", required = false) Integer childId, Model model) {
-        if (childId != null) {
-            List<Product> products = productService.getProductsByCategoryChildId(childId);
-            model.addAttribute("products", products);
-            CategoryChild category = categoryService.getChildCategoryById(childId);
-            model.addAttribute("category", category);
-        } else {
-            model.addAttribute("products", productService.getAllProducts());
+    public String listProducts(
+            @Valid @ModelAttribute("query") ProductQuery query,
+            BindingResult bindingResult,
+            HttpSession session,
+            Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/unified-login?role=admin";
         }
+        if (query.getChildId() != null) {
+            model.addAttribute("category", categoryService.getChildCategoryById(query.getChildId()));
+        }
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("productPage", Page.empty());
+            return "product_list";
+        }
+        model.addAttribute("productPage", productService.queryVisibleProducts(query));
         return "product_list";
     }
 
@@ -152,25 +167,35 @@ public class ProductController {
         }
     }
 
-    // 商品搜索功能
+    @PostMapping("/{id}/off-shelf")
+    public String offShelf(
+            @PathVariable Integer id,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/unified-login?role=admin";
+        }
+        try {
+            productService.offShelf(id);
+            redirectAttributes.addFlashAttribute("successMessage", "商品已下架");
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/product/list";
+    }
+
+    // 兼容旧搜索入口，统一重定向到新的条件查询
     @GetMapping("/search")
     public String searchProducts(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "childId", required = false) Integer childId,
-            Model model) {
-        
-        List<Product> products = productService.searchProducts(keyword);
-        
-        // 添加搜索关键词到模型中，以便在页面上回显
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("products", products);
-        
-        // 如果指定了分类，添加分类信息
-        if (childId != null) {
-            CategoryChild category = categoryService.getChildCategoryById(childId);
-            model.addAttribute("category", category);
+            RedirectAttributes redirectAttributes) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            redirectAttributes.addAttribute("name", keyword.trim());
         }
-        
-        return "product_list";
+        if (childId != null) {
+            redirectAttributes.addAttribute("childId", childId);
+        }
+        return "redirect:/product/list";
     }
 }

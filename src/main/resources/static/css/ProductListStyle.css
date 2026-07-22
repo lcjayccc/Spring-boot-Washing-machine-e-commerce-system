@@ -69,6 +69,41 @@ body {
     flex-wrap: wrap;
 }
 
+.management-search-form {
+    gap: 10px;
+}
+
+.query-field {
+    flex: 1 1 210px;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #d8ddd9;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #fff;
+}
+
+.query-field:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15);
+    outline: none;
+}
+
+.management-search-form .search-button {
+    border-radius: 4px;
+}
+
+.management-search-form .search-clear {
+    margin-left: 0;
+}
+
+.validation-message {
+    flex-basis: 100%;
+    color: #b71c1c;
+    font-size: 13px;
+    padding-top: 2px;
+}
+
 .search-input {
     flex: 1;
     padding: 12px;
@@ -123,6 +158,25 @@ body {
     color: #333;
     font-size: 14px;
     border-radius: 0 4px 4px 0;
+}
+
+.message-banner {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.message-banner.success {
+    color: #256029;
+    background-color: #edf7ed;
+    border-left: 4px solid #4CAF50;
+}
+
+.message-banner.error {
+    color: #8a1c1c;
+    background-color: #fff0f0;
+    border-left: 4px solid #f44336;
 }
 
 /* 过滤区域样式 */
@@ -327,6 +381,17 @@ body {
     margin-bottom: 8px;
 }
 
+.product-code,
+.product-location {
+    color: #54615a;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.product-code {
+    font-weight: 600;
+}
+
 /* 商品操作区域 */
 .product-actions {
     display: flex;
@@ -345,7 +410,7 @@ body {
 }
 
 /* 按钮样式 */
-.btn-upload, .btn-view, .btn-edit, .btn-delete {
+.btn-upload, .btn-view, .btn-edit, .btn-delete, .btn-remove {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
@@ -355,6 +420,16 @@ body {
     text-align: center;
     transition: background-color 0.3s, transform 0.2s;
     flex: 1;
+}
+
+.off-shelf-form {
+    display: flex;
+    flex: 1;
+    margin: 0;
+}
+
+.off-shelf-form .btn-delete {
+    width: 100%;
 }
 
 .btn-upload {
@@ -394,6 +469,16 @@ body {
 
 .btn-delete:hover {
     background-color: #d32f2f;
+    transform: translateY(-2px);
+}
+
+.btn-remove {
+    background-color: #607D8B;
+    color: white;
+}
+
+.btn-remove:hover {
+    background-color: #455A64;
     transform: translateY(-2px);
 }
 
@@ -465,6 +550,34 @@ body {
     font-size: 16px;
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    margin-bottom: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    color: #4b554f;
+    font-size: 14px;
+}
+
+.pagination a {
+    padding: 8px 14px;
+    border: 1px solid #cfd8d1;
+    border-radius: 4px;
+    color: #2e7d32;
+    text-decoration: none;
+    background-color: #fff;
+}
+
+.pagination a:hover {
+    background-color: #edf7ed;
+    border-color: #81c784;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .product-grid {
@@ -497,6 +610,11 @@ body {
         border-radius: 4px;
         margin-bottom: 10px;
     }
+
+    .query-field {
+        width: 100%;
+        box-sizing: border-box;
+    }
     
     .search-button {
         border-radius: 4px;
@@ -511,7 +629,7 @@ body {
         flex-direction: column;
     }
     
-    .btn-view, .btn-edit, .btn-delete {
+    .btn-view, .btn-edit, .btn-delete, .btn-remove {
         width: 100%;
     }
 }

@@ -14,28 +14,42 @@
             <a th:href="@{/category/list}" class="btn-back">返回分类管理</a>
         </div>
     </div>
+
+    <div class="message-banner success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="message-banner error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
     
     <div class="search-section">
-        <form th:action="@{/product/search}" method="get" class="search-form">
-            <input type="text" name="keyword" th:value="${keyword}" class="search-input" placeholder="输入商品名称或型号搜索...">
-            <button type="submit" class="search-button">搜索</button>
-            <a th:if="${keyword != null && keyword != ''}" th:href="@{/product/list}" class="search-clear">清除搜索</a>
+        <form th:action="@{/product/list}" method="get" class="search-form management-search-form" th:object="${query}">
+            <input type="text" name="productCode" th:value="${query.productCode}"
+                   class="query-field" maxlength="64" placeholder="商品编码（精确）">
+            <input type="text" name="name" th:value="${query.name}"
+                   class="query-field" placeholder="商品名称（包含）">
+            <input type="text" name="stockLocation" th:value="${query.stockLocation}"
+                   class="query-field" maxlength="100" placeholder="库存地点（包含）">
+            <input type="hidden" name="pageSize" th:value="${query.pageSize}">
+            <input type="hidden" name="childId" th:if="${query.childId != null}" th:value="${query.childId}">
+            <button type="submit" class="search-button">查询</button>
+            <a th:href="@{/product/list(childId=${query.childId})}" class="search-clear">重置</a>
+            <div class="validation-message" th:if="${#fields.hasAnyErrors()}">
+                分页参数无效：页码和每页数量必须大于 0，且每页最多 100 条。
+            </div>
         </form>
     </div>
     
-    <!-- 搜索结果提示 -->
-    <div th:if="${keyword != null && keyword != ''}" class="search-result-info">
-        搜索 "<span th:text="${keyword}"></span>" 的结果: <span th:text="${products.size()}"></span> 个商品
+    <div class="search-result-info">
+        共找到 <strong th:text="${productPage.totalElements}">0</strong> 个可见商品，
+        当前仅展示已上架和缺货商品。
     </div>
     
     <div class="product-grid">
-        <div class="product-card" th:each="product : ${products}">
+        <div class="product-card" th:each="product : ${productPage.content}">
             <div class="product-image">
                 <img th:src="${product.imageUrl != null} ? @{${product.imageUrl}} : @{/images/default.jpg}" th:alt="${product.name}">
             </div>
             <div class="product-info">
                 <div class="product-id" th:text="'ID: ' + ${product.id}"></div>
                 <h3 class="product-title" th:text="${product.name}"></h3>
+                <div class="product-code" th:text="'商品编码：' + (${product.productCode} != null ? ${product.productCode} : '-')"></div>
                 
                 <div class="product-status">
                     <span th:if="${product.stock != null && product.stock > 0}" class="stock-badge in-stock">库存: <strong th:text="${product.stock}"></strong></span>
@@ -49,6 +63,7 @@
                 </div>
                 
                 <div class="product-model" th:text="'型号：' + ${product.model}"></div>
+                <div class="product-location" th:text="'库存地点：' + (${product.stockLocation} != null ? ${product.stockLocation} : '-')"></div>
                 <div class="product-price" th:text="'￥' + ${#numbers.formatDecimal(product.price, 1, 2)}"></div>
                 <div class="product-meta">
                     <div>
@@ -64,8 +79,13 @@
                 <div class="product-actions">
                     <div class="action-group">
                         <a th:href="@{/product/edit/{id}(id=${product.id}, childId=${category != null ? category.id : null})}" class="btn-edit">编辑</a>
+                        <form th:action="@{/product/{id}/off-shelf(id=${product.id})}"
+                              method="post" class="off-shelf-form"
+                              onsubmit="return confirm('确定下架该商品吗？下架后列表将不再展示。');">
+                            <button type="submit" class="btn-delete">下架</button>
+                        </form>
                         <a th:href="@{/product/delete/{id}(id=${product.id}, childId=${category != null ? category.id : null})}"
-                           class="btn-delete"
+                           class="btn-remove"
                            onclick="return confirm('确定要删除该商品吗？');">删除</a>
                     </div>
                     <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="upload-form">
@@ -80,8 +100,16 @@
                 </div>
             </div>
         </div>
-        <div class="no-data" th:if="${products == null or #lists.isEmpty(products)}">暂无商品数据</div>
+        <div class="no-data" th:if="${productPage.empty}">没有符合条件的商品</div>
     </div>
+
+    <nav class="pagination" aria-label="商品列表分页">
+        <a th:if="${productPage.hasPrevious()}"
+           th:href="@{/product/list(productCode=${query.productCode},name=${query.name},stockLocation=${query.stockLocation},childId=${query.childId},pageNum=${productPage.number},pageSize=${query.pageSize})}">上一页</a>
+        <span th:text="'第 ' + ${productPage.totalPages == 0 ? 0 : productPage.number + 1} + ' / ' + ${productPage.totalPages} + ' 页'">第 1 / 1 页</span>
+        <a th:if="${productPage.hasNext()}"
+           th:href="@{/product/list(productCode=${query.productCode},name=${query.name},stockLocation=${query.stockLocation},childId=${query.childId},pageNum=${productPage.number + 2},pageSize=${query.pageSize})}">下一页</a>
+    </nav>
 </div>
 
 <script>

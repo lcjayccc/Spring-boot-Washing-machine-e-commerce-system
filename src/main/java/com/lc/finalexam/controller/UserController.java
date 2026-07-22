@@ -11,7 +11,6 @@ import com.lc.finalexam.service.UserService;
 import com.lc.finalexam.service.ProductService;
 import com.lc.finalexam.service.CategoryService;
 import com.lc.finalexam.util.CaptchaUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -28,19 +27,24 @@ import jakarta.validation.Valid;
 @Controller
 @RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
     
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
 
-    
+    public UserController(
+            UserService userService,
+            ProductService productService,
+            CategoryService categoryService,
+            MessageSource messageSource) {
+        this.userService = userService;
+        this.productService = productService;
+        this.categoryService = categoryService;
+        this.messageSource = messageSource;
+    }
 
     // 跳转到用户注册页面
     @GetMapping("/register")
@@ -316,4 +320,4 @@ public class UserController {
     private Integer tryParseInt(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return null; }
     }
-} 
+}
